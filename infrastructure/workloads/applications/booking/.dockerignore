@@ -1,0 +1,18 @@
+# Exclude git
+.git
+.gitignore
+
+# Exclude dependencies
+node_modules
+node_modules/*
+**/node_modules
+**/node_modules/*
+npm-debug.log
+
+# Exclude build tools/cache
+dist
+**/dist
+_dist
+**/_dist
+.idea
+build/temp

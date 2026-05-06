@@ -1,0 +1,58 @@
+# Terraform generated files
+.terraform/           # Directory where provider binaries and modules are downloaded
+**/.terraform/*
+**/.terraform/
+**/.terraform
+**/*.tfstate
+**/*.tfstate*
+*.tfstate             # Terraform state files (may contain sensitive data)
+*.tfstate.*.backup    # Backup files of the state file
+crash.log             # Crash log files
+.terraform.tfstate.*  # Other state file variants
+
+# Variable and override files
+*.tfvars              # Variable files, often environment-specific or containing secrets
+*.tfvars.json         # JSON variable files
+# Exclude all override files to prevent local configurations from being committed
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform CLI configuration files
+.terraformrc          # CLI configuration file (e.g., credentials or personal settings)
+terraform.rc          # Alternative CLI configuration file
+
+# Secure Variable Management
+# The .terraform.lock.hcl file should generally be committed to ensure consistent
+# provider versions across teams, but can be ignored for solo projects.
+# If you choose to ignore it:
+.terraform.lock.hcl
+**/.terraform.lock.hcl
+
+# Node
+node_modules
+node_modules/*
+**/node_modules
+**/node_modules/*
+**/_dist
+
+# Nest
+**/nestjs/src/instrument.ts
+
+# Env
+*.env
+*.venv
+**/*.env
+**/*.venv
+
+# Misc
+*.DS_Store*
+**/*.DS_Store*
+
+# Python / Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3

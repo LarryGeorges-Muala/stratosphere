@@ -1,0 +1,26 @@
+stages:
+  - plan
+
+default:
+  image: ubuntu:24.04
+
+terraform_plan:
+  stage: plan
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg software-properties-common curl wget unzip
+    - wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+    - apt update && apt install terraform -y
+    - terraform --version
+    - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip awscliv2.zip
+    - ./aws/install
+    - aws --version
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile terraform
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile terraform
+    - cd $CI_PROJECT_DIR/infrastructure/vpc
+    - terraform init
+    - terraform plan
+    - aws configure set aws_access_key_id '' --profile terraform
+    - aws configure set aws_secret_access_key '' --profile terraform

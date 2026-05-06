@@ -1,0 +1,16 @@
+{
+    "main_guest": {
+        "title": "Mr",
+        "firstname": "main",
+        "surname": "Guest",
+        "email": "main@guest.com",
+        "phone": "",
+        "origin_country": "Oman"
+    },
+    "guests_number": 5,
+    "breakfast": true,
+    "check_in": "2026-04-10",
+    "check_out": "2026-04-11",
+    "check_in_time": "9:00",
+    "check_out_time": "9:00"
+}

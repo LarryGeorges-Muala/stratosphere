@@ -1,0 +1,141 @@
+# docker compose up --build --no-deps --force-recreate --remove-orphans
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: always
+    networks:
+      - local_network
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq-container
+    networks:
+      - local_network
+    ports:
+      - 5672:5672  # AMQP port
+      - 15672:15672 # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: redis-server --bind 0.0.0.0
+    networks:
+      - local_network
+    ports:
+      # - 127.0.0.1:6379:6379
+      - 0.0.0.0:6379:6379
+
+  worker-mysql:
+    container_name: worker-mysql
+    image: worker-mysql:latest
+    networks:
+      - local_network
+    build:
+      context: ./nodejs/
+      dockerfile: ./workers/worker-mysql.Dockerfile
+    ports:
+      - 3001:3001
+    depends_on:
+      mysql:
+        condition: service_started
+
+  worker-rabbitmq:
+    container_name: worker-rabbitmq
+    image: worker-rabbitmq:latest
+    networks:
+      - local_network
+    build:
+      context: ./nodejs/
+      dockerfile: ./workers/worker-rabbitmq.Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      worker-mysql:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_started
+
+  backend-nest:
+    container_name: backend-nest
+    image: nestjs-backend:latest
+    networks:
+      - local_network
+    build:
+      context: ./nestjs/
+      dockerfile: ./backend.Dockerfile
+    environment:
+      ENV: ${ENVIRONMENT}
+      SENTRY_DNS: ${SENTRY_DNS_NEST}
+    volumes:
+      - ./nestjs:/app
+      # - /app/node_modules  # Prevents local node_modules from overwriting container's
+    ports:
+      - 4001:4001
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  backend-node:
+    container_name: backend-node
+    image: nodejs-backend:latest
+    networks:
+      - local_network
+    build:
+      context: ./nodejs/
+      dockerfile: ./backend.Dockerfile
+    environment:
+      ENV: ${ENVIRONMENT}
+      REDIS_HOST: ${REDIS_HOST}
+      SENTRY_DNS: ${SENTRY_DNS_NODE}
+    ports:
+      - 4002:4001
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  frontend:
+    container_name: frontend
+    image: reactjs-frontend:latest
+    networks:
+      - local_network
+    build:
+      context: ./reactjs/
+      dockerfile: ./frontend.Dockerfile
+    volumes:
+      - ./reactjs:/app
+      - /app/node_modules  # Prevents local node_modules from overwriting container's
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Required for some OS/Docker setups to detect changes
+      - VITE_ENV=${ENVIRONMENT}
+      - VITE_BACKEND=${REACT_BACKEND_URL}
+      - VITE_SENTRY_DNS=${SENTRY_DNS_REACT}
+    ports:
+      - 5173:5173
+    depends_on:
+      backend-nest:
+        condition: service_started
+      backend-node:
+        condition: service_started
+
+networks:
+  local_network:
+    driver: bridge
