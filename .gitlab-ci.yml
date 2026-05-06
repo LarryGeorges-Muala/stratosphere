@@ -34,7 +34,7 @@ helm_lint:
     - echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
     - apt-get update
     - apt-get install helm
-    - helm --version
+    - helm version
     - cd $CI_PROJECT_DIR//infrastructure/workloads/devops/charts;
     - find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
     - helm package ./build-agents --destination ./build-agents/charts;
