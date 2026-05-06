@@ -2,7 +2,7 @@ name: Terraform Plan
 run-name: ${{ github.actor }} is planning the Stratoshpere 🚀
 on: [push]
 jobs:
-  Terraform-Plan:
+  Terraform-Plan-VPC:
     runs-on: ubuntu-24.04
     steps:
       - name: Testing environment prep
