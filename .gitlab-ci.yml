@@ -1,5 +1,6 @@
 stages:
   - plan
+  - lint
 
 default:
   image: ubuntu:24.04
@@ -38,12 +39,12 @@ helm_lint:
     - cd $CI_PROJECT_DIR//infrastructure/workloads/devops/charts;
     - find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
     - helm package ./build-agents --destination ./build-agents/charts;
-    - find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict \;
+    - find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
     - cd $CI_PROJECT_DIR//infrastructure/workloads/devops/charts;
     - find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
     - helm package ./game-2048 --destination ./game-2048/charts;
-    - find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict \;
+    - find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
     - cd $CI_PROJECT_DIR//infrastructure/workloads/devops/charts;
     - find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
     - helm package ./nginx --destination ./nginx/charts;
-    - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict \;
+    - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;

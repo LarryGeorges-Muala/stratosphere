@@ -114,7 +114,7 @@ stages:
               script: |
                 find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
                 helm package ./build-agents --destination ./build-agents/charts
-                find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict \;
+                find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
             condition: eq(variables['Agent.OS'], 'Linux')
 
           - task: Bash@3
@@ -125,7 +125,7 @@ stages:
               script: |
                 find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
                 helm package ./game-2048 --destination ./game-2048/charts
-                find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict \;
+                find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
             condition: eq(variables['Agent.OS'], 'Linux')
 
           - task: Bash@3
@@ -136,5 +136,5 @@ stages:
               script: |
                 find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
                 helm package ./nginx --destination ./nginx/charts
-                find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict \;
+                find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
             condition: eq(variables['Agent.OS'], 'Linux')

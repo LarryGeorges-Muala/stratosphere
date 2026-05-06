@@ -1,4 +1,4 @@
-name: Terraform Plan
+name: Test
 run-name: ${{ github.actor }} is planning the Stratoshpere 🚀
 on: [push]
 jobs:
@@ -65,18 +65,21 @@ jobs:
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
           find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm package ./build-agents --destination ./build-agents/charts
-          find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict \;
+          ls ./build-agents/charts
+          find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
 
       - name: Lint - Game 2048
         run: |
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
           find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm package ./game-2048 --destination ./game-2048/charts
-          find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict \;
+          ls ./game-2048/charts
+          find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
 
       - name: Lint - Nginx
         run: |
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
           find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm package ./nginx --destination ./nginx/charts
-          find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict \;
+          ls ./nginx/charts
+          find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
