@@ -8,7 +8,7 @@ jobs:
       - name: Testing environment prep
         run: |
           echo 'Starting env prep for testing...'
-          apt update && apt install -y gnupg software-properties-common curl wget unzip
+          sudo apt update && sudo apt install -y gnupg software-properties-common curl wget unzip
       - name: Terraform - Installation
         run: |
           wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
