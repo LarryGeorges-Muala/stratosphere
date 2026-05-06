@@ -1,18 +1,36 @@
-name: GitHub Actions
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+name: Terraform Plan
+run-name: ${{ github.actor }} is planning the Stratoshpere 🚀
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
-    runs-on: ubuntu-latest
+  Terraform-Plan:
+    runs-on: ubuntu-24.04
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Testing environment prep
+        run: |
+          echo 'Starting env prep for testing...'
+          apt update && apt install -y gnupg software-properties-common curl wget unzip
+      - name: Terraform - Installation
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+          apt update && apt install terraform -y
+          terraform --version
+      - name: AWS CLI - Installation
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          aws --version
+      - name: AWS CLI - Configuration
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile terraform
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile terraform
       - name: Check out repository code
         uses: actions/checkout@v6
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      - name: VPC - TF Plan
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          cd ${{ github.workspace }}/infrastructure/vpc
+          terraform init
+          terraform plan
+          aws configure set aws_access_key_id '' --profile terraform
+          aws configure set aws_secret_access_key '' --profile terraform
