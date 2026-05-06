@@ -140,3 +140,49 @@ resource "kubernetes_namespace_v1" "staging_disaster_recovery" {
     name = "staging"
   }
 }
+
+################################################################################
+# Kubernetes Namespaces - Prod
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
+################################################################################
+
+resource "kubernetes_namespace_v1" "production" {
+  depends_on = [
+    kubernetes_namespace_v1.devops
+  ]
+  provider = kubernetes.cluster_one
+  metadata {
+    annotations = {
+      name = "production"
+    }
+
+    labels = {
+      type      = "workloads"
+      category  = "applications"
+      namespace = "production"
+    }
+
+    name = "production"
+  }
+}
+
+resource "kubernetes_namespace_v1" "production_disaster_recovery" {
+  depends_on = [
+    kubernetes_namespace_v1.devops_disaster_recovery
+  ]
+  count    = var.disaster_recovery_enabled ? 1 : 0
+  provider = kubernetes.cluster_two
+  metadata {
+    annotations = {
+      name = "production"
+    }
+
+    labels = {
+      type      = "workloads"
+      category  = "applications"
+      namespace = "production"
+    }
+
+    name = "production"
+  }
+}
