@@ -7,8 +7,7 @@ pipelines:
           name: Testing environment prep
           script:
           - echo 'Starting env prep for testing...'
-          - apt update && apt install -y gnupg software-properties-common curl wget unzip
-
+          - apt update && apt install -y gnupg software-properties-common curl wget unzip ca-certificates
       - step:
           name: Terraform - Installation
           script:
