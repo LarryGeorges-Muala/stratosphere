@@ -23,3 +23,26 @@ pipelines:
           - terraform plan
           - aws configure set aws_access_key_id '' --profile terraform
           - aws configure set aws_secret_access_key '' --profile terraform
+
+      - step:
+          name: Helm Lint
+          script:
+          - echo 'Starting env prep for testing...'
+          - apt-get install curl gpg apt-transport-https --yes
+          - curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+          - echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+          - apt-get update
+          - apt-get install helm
+          - helm version
+          - cd ${BITBUCKET_CLONE_DIR}/infrastructure/workloads/devops/charts;
+          - find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
+          - helm package ./build-agents --destination ./build-agents/charts;
+          - find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+          - cd ${BITBUCKET_CLONE_DIR}/infrastructure/workloads/devops/charts;
+          - find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
+          - helm package ./game-2048 --destination ./game-2048/charts;
+          - find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+          - cd ${BITBUCKET_CLONE_DIR}/infrastructure/workloads/devops/charts;
+          - find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
+          - helm package ./nginx --destination ./nginx/charts;
+          - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
