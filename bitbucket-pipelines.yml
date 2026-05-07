@@ -1,0 +1,41 @@
+image: ubuntu:24.04
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Testing environment prep
+          script:
+          - echo 'Starting env prep for testing...'
+          - sudo apt update && sudo apt install -y gnupg software-properties-common curl wget unzip
+
+      - step:
+          name: Terraform - Installation
+          script:
+          - sudo wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+          - sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          - sudo apt update && sudo apt install terraform -y
+          - terraform --version
+
+      - step:
+          name: AWS CLI - Installation
+          script:
+          - sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          - sudo unzip awscliv2.zip
+          - sudo ./aws/install
+          - aws --version
+
+      - step:
+          name: AWS CLI - Configuration
+          script:
+          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile terraform
+          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile terraform
+
+      - step:
+          name: VPC - TF Plan
+          script:
+          - cd ${BITBUCKET_CLONE_DIR}/infrastructure/vpc
+          - terraform init
+          - terraform plan
+          - aws configure set aws_access_key_id '' --profile terraform
+          - aws configure set aws_secret_access_key '' --profile terraform
