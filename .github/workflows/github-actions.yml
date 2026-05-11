@@ -1,14 +1,12 @@
 name: Test
 run-name: ${{ github.actor }} is testing the Stratoshpere 🚀
-env:
-  POOL: 'ubuntu-24.04'
 on:
   push:
     branches:
       - main
 jobs:
   Terraform-Plan-VPC:
-    runs-on: $POOL
+    runs-on: 'ubuntu-24.04'
     steps:
       - name: Testing environment prep
         run: |
@@ -47,7 +45,7 @@ jobs:
 
 
   Helm-Lint:
-    runs-on: $POOL
+    runs-on: 'ubuntu-24.04'
     environment: DEVOPS # Approval Gate
     needs: Terraform-Plan-VPC
     steps:
