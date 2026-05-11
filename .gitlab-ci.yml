@@ -7,6 +7,8 @@ default:
 
 terraform_plan:
   stage: plan
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
   script:
     - echo 'Starting tests...'
     - apt update && apt install -y gnupg software-properties-common curl wget unzip
@@ -28,6 +30,14 @@ terraform_plan:
 
 helm_lint:
   stage: lint
+  needs: ["terraform_plan"]
+  when: on_success
+  environment:
+    name: DEVOPS
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: false
   script:
     - echo 'Starting env prep for testing...'
     - apt-get install curl gpg apt-transport-https --yes

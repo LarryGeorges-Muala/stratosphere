@@ -6,8 +6,8 @@ variables:
     value: ubuntu-24.04
 
 stages:
-  - stage: test
-    displayName: Testing
+  - stage: terraform
+    displayName: Testing Terraform
     dependsOn: []
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
 
@@ -73,68 +73,79 @@ stages:
                 aws configure set aws_secret_access_key '' --profile terraform
             condition: eq(variables['Agent.OS'], 'Linux')
 
-      - job: helm
+
+  - stage: helm
+    displayName: Testing Helm
+    dependsOn:
+      - terraform
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+
+    jobs:
+      - deployment: helm
         displayName: Helm Lint
-        dependsOn:
-          - terraform
         condition: succeeded('terraform')
+        continueOnError: 'false'
         pool: $(pool-agent)
         workspace:
           clean: all
-        steps: 
-          - checkout: self
-            fetchTags: 'true'
+        environment: DEVOPS # Approval Gate
+        strategy:
+          runOnce:
+            deploy:          
+              steps:
+                - checkout: self
+                  fetchTags: 'true'
 
-          - task: Bash@3
-            displayName: Testing environment prep
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo 'Starting env prep for testing...'
-                sudo apt-get install curl gpg apt-transport-https --yes
-            condition: eq(variables['Agent.OS'], 'Linux')
+                - task: Bash@3
+                  displayName: Testing environment prep
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      echo 'Starting env prep for testing...'
+                      sudo apt-get install curl gpg apt-transport-https --yes
+                  condition: eq(variables['Agent.OS'], 'Linux')
 
-          - task: Bash@3
-            displayName: Helm - Installation
-            inputs:
-              targetType: 'inline'
-              script: |
-                curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
-                echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-                sudo apt-get update
-                sudo apt-get install helm
-                helm version
-            condition: eq(variables['Agent.OS'], 'Linux')
+                - task: Bash@3
+                  displayName: Helm - Installation
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+                      echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+                      sudo apt-get update
+                      sudo apt-get install helm
+                      helm version
+                  condition: eq(variables['Agent.OS'], 'Linux')
 
-          - task: Bash@3
-            displayName: Lint - Build Agents
-            inputs:
-              targetType: 'inline'
-              workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
-              script: |
-                find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
-                helm package ./build-agents --destination ./build-agents/charts
-                find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
-            condition: eq(variables['Agent.OS'], 'Linux')
+                - task: Bash@3
+                  displayName: Lint - Build Agents
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
+                    script: |
+                      find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm package ./build-agents --destination ./build-agents/charts
+                      find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
 
-          - task: Bash@3
-            displayName: Lint - Game 2048
-            inputs:
-              targetType: 'inline'
-              workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
-              script: |
-                find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
-                helm package ./game-2048 --destination ./game-2048/charts
-                find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
-            condition: eq(variables['Agent.OS'], 'Linux')
+                - task: Bash@3
+                  displayName: Lint - Game 2048
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
+                    script: |
+                      find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm package ./game-2048 --destination ./game-2048/charts
+                      find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
 
-          - task: Bash@3
-            displayName: Lint - Nginx
-            inputs:
-              targetType: 'inline'
-              workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
-              script: |
-                find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
-                helm package ./nginx --destination ./nginx/charts
-                find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
-            condition: eq(variables['Agent.OS'], 'Linux')
+                - task: Bash@3
+                  displayName: Lint - Nginx
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
+                    script: |
+                      find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm package ./nginx --destination ./nginx/charts
+                      find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
