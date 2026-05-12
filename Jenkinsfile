@@ -1,12 +1,11 @@
 pipeline {
     agent any
     stages {
-        stage('Build') {
+        stage('Terraform') {
             steps {
-                sh 'echo "Hello World"'
                 sh '''
-                    echo "Multiline shell steps works too"
-                    ls /app
+                    echo "Starting env prep for testing..."
+                    terraform --version
                 '''
             }
         }
