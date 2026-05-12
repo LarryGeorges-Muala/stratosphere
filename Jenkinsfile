@@ -1,7 +1,13 @@
 /* Requires the Docker Pipeline plugin */
 pipeline {
-    agent { docker { image 'python:3.14.5-alpine3.23' } }
+    agent { docker { image 'ubuntu:24.04' } }
     stages {
+        stage('Cleanup') {
+            steps {
+                // Deletes the workspace before the main build logic
+                cleanWs()
+            }
+        }
         stage('build') {
             steps {
                 sh 'python --version'
