@@ -18,6 +18,7 @@ services:
       JAVA_OPTS: -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
     volumes:
       - .:/app
+      - /app/.jenkins_configuration
       - .jenkins_configuration:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/local/bin/docker:/usr/bin/docker # - $(which docker):/usr/bin/docker
