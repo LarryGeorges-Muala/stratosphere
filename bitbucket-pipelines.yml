@@ -6,7 +6,7 @@ pipelines:
       - stage:
           name: VPC - TF Plan
           condition:
-              state: BITBUCKET_BRANCH == "main"
+            state: BITBUCKET_BRANCH == "main"
           trigger: automatic
           steps:
             - step:
@@ -33,7 +33,7 @@ pipelines:
       - stage:
           name: Helm Lint
           condition:
-              state: BITBUCKET_BRANCH == "main"
+            state: BITBUCKET_BRANCH == "main"
           deployment: DEVOPS
           trigger: manual # Approval Gate
           steps:

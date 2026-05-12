@@ -4,7 +4,7 @@ sudo touch startup.log
 
 # Add Docker's official GPG key:
 sudo apt update | sudo tee -a startup.log
-sudo apt install ca-certificates curl | sudo tee -a startup.log
+sudo apt install ca-certificates curl -y | sudo tee -a startup.log
 sudo install -m 0755 -d /etc/apt/keyrings | sudo tee -a startup.log
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc | sudo tee -a startup.log
 sudo chmod a+r /etc/apt/keyrings/docker.asc

@@ -1,0 +1,5 @@
+docker-workflow:latest
+docker-compose-build-step:latest
+configuration-as-code:latest
+ssh-slaves:latest
+kubernetes:latest
