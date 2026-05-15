@@ -2,231 +2,140 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-namespace: staging
+super-chart:
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 1
+  namespace: "staging"
 
-# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-image:
-  repository: nginx
-  # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  imagePullSecrets: []
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: []
-# This is to override the chart name.
-nameOverride: ""
-fullnameOverride: ""
+  nameOverride: ""
 
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
-serviceAccount:
-  # Specifies whether a service account should be created.
-  create: true
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
-  # Annotations to add to the service account.
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template.
-  name: "pod-service-account"
+  fullnameOverride: "nginx"
 
-# This is for setting Kubernetes Annotations to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
-# This is for setting Kubernetes Labels to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: {}
+  secrets: []
 
-podSecurityContext: {}
-  # fsGroup: 2000
+  deployments:
+    - name: "backend"
+      kind: Deployment
+      replicaCount: 1
+      containers:
+        - name: "api"
+          startup:
+            enabled: false
+            command: []
+            args: []
+          targetGroupBinding:
+            enabled: false
+            arn: ""
+            securityGroup: ""
+          image:
+            repository: nginx
+            pullPolicy: IfNotPresent
+            tag: "latest"
+          podAnnotations: {}
+          podLabels: {}
+          podSecurityContext: {}
+          securityContext: {}
+          service:
+            scheme: internal
+            type: ClusterIP
+            port: 80
+            extraPorts:
+              - name: https
+                enabled: false
+                port: 443
+                protocol: TCP
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: external
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+              # service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+          ingress:
+            enabled: false
+            className: "alb"
+            annotations:
+              # alb.ingress.kubernetes.io/certificate-arn: arn:...
+              # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+              # alb.ingress.kubernetes.io/ssl-redirect: "443"
+              alb.ingress.kubernetes.io/scheme: internet-facing
+              alb.ingress.kubernetes.io/target-type: ip
+              alb.ingress.kubernetes.io/healthcheck-path: /
+              # kubernetes.io/ingress.class: nginx
+              # kubernetes.io/tls-acme: "true"
+            hosts:
+              - host: nginx.local
+                paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+            tls: []
+          httpRoute:
+            enabled: false
+            annotations: {}
+            parentRefs:
+              - name: gateway
+                sectionName: http
+            hostnames:
+              - nginx.local
+            rules:
+              - matches:
+                - path:
+                    type: PathPrefix
+                    value: /headers
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: config
+              mountPath: "/etc/nginx/conf.d"
+              readOnly: false
+            - name: template
+              mountPath: "/usr/share/nginx/html"
+              readOnly: false
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+      serviceAccount:
+        create: true
+        automount: false
+        annotations: {}
+        name: "pod-service-account"
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/guide/service/annotations.md#lb-scheme
-  scheme: internal
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 80
-  # will allocate a port from a range (default: 30000-32767)
-  # Static band: 30000-30085
-  # Dynamic band: 30086-32767
-  # nodePort: 30007
+      autoscaling:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
 
+      volumes:
+        - name: config
+          secret:
+            secretName: nginx-custom-config
+            optional: false
+        - name: template
+          secret:
+            secretName: nginx-custom-template
+            optional: false
 
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-# ingress:
-#   enabled: false
-#   className: ""
-#   annotations: {}
-#     # kubernetes.io/ingress.class: nginx
-#     # kubernetes.io/tls-acme: "true"
-#   hosts:
-#     - host: nginx.local
-#       paths:
-#         - path: /
-#           pathType: ImplementationSpecific
-#   tls: []
-#     # - secretName: nginx-tls
-#     #   hosts:
-#     #     - nginx.local
-ingress:
-  enabled: false
-  className: "alb"
-  annotations:
-    # alb.ingress.kubernetes.io/certificate-arn: arn:...
-    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    # alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/healthcheck-path: /
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: nginx-ingress.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-    # - secretName: nginx-ingress-tls
-    #   hosts:
-    #     - nginx-ingress.local
+      nodeSelector: {}
 
-# -- Expose the service via gateway-api HTTPRoute
-# Requires Gateway API resources and suitable controller installed within the cluster
-# (see: https://gateway-api.sigs.k8s.io/guides/)
-httpRoute:
-  # HTTPRoute enabled.
-  enabled: false
-  # HTTPRoute annotations.
-  annotations: {}
-  # Which Gateways this Route is attached to.
-  parentRefs:
-  - name: gateway
-    sectionName: http
-    # namespace: default
-  # Hostnames matching HTTP header.
-  hostnames:
-  - nginx.local
-  # List of rules and filters applied.
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+      tolerations: []
 
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+      volumeClaimTemplates:
+        name: ""
+        storageClassName: ""
+        storage: ""
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-# livenessProbe:
-#   httpGet:
-#     path: /
-#     port: http
-#   initialDelaySeconds: 15
-#   periodSeconds: 20
-# readinessProbe:
-#   httpGet:
-#     path: /
-#     port: http
-#   initialDelaySeconds: 15
-#   periodSeconds: 20
-livenessProbe:
-  # httpGet:
-  #   path: /
-  #   port: http
-  exec:
-    command:
-    - whoami
-  initialDelaySeconds: 15
-  periodSeconds: 20
-readinessProbe:
-  # httpGet:
-  #   path: /
-  #   port: http
-  exec:
-    command:
-    - whoami
-  initialDelaySeconds: 15
-  periodSeconds: 20
-
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
-
-# Additional volumes on the output Deployment definition.
-volumes:
-  - name: config
-    secret:
-      secretName: nginx-custom-config
-      optional: false
-  - name: template
-    secret:
-      secretName: nginx-custom-template
-      optional: false
-
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts:
-  - name: config
-    mountPath: "/etc/nginx/conf.d"
-    readOnly: false
-  - name: template
-    mountPath: "/usr/share/nginx/html"
-    readOnly: false
-
-nodeSelector: {}
-# nodeSelector: {
-#   role: "staging" 
-# }
-
-tolerations: []
-
-affinity:
-  enabled: true
-
-targetGroupBinding:
-  enabled: true
-  arn: "arn..."
-  securityGroup: "sg..."
+      affinity:
+        enabled: true
