@@ -67,21 +67,24 @@ jobs:
 
       - name: Lint - Build Agents
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
+          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm package ./build-agents --destination ./build-agents/charts
-          find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+          helm dependency update;
+          helm package ./build-agents --destination ./build-agents/charts;
+          find ./build-agents/charts/ -name "*build-agents*.tgz" -exec helm lint --strict {} \;
 
       - name: Lint - Game 2048
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
+          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm package ./game-2048 --destination ./game-2048/charts
-          find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+          helm dependency update;
+          helm package ./game-2048 --destination ./game-2048/charts;
+          find ./game-2048/charts/ -name "*game-2048*.tgz" -exec helm lint --strict {} \;
 
       - name: Lint - Nginx
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts
+          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm package ./nginx --destination ./nginx/charts
-          find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+          helm dependency update;
+          helm package ./nginx --destination ./nginx/charts;
+          find ./nginx/charts/ -name "*nginx*.tgz" -exec helm lint --strict {} \;
