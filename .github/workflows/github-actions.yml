@@ -69,7 +69,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm dependency update;
+          helm dependency update ./build-agents;
           helm package ./build-agents --destination ./build-agents/charts;
           find ./build-agents/charts/ -name "*build-agents*.tgz" -exec helm lint --strict {} \;
 
@@ -77,7 +77,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm dependency update;
+          helm dependency update ./game-2048;
           helm package ./game-2048 --destination ./game-2048/charts;
           find ./game-2048/charts/ -name "*game-2048*.tgz" -exec helm lint --strict {} \;
 
@@ -85,6 +85,6 @@ jobs:
         run: |
           cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
           find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
-          helm dependency update;
+          helm dependency update ./nginx;
           helm package ./nginx --destination ./nginx/charts;
           find ./nginx/charts/ -name "*nginx*.tgz" -exec helm lint --strict {} \;
