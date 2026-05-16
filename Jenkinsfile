@@ -17,6 +17,298 @@ pipeline {
                 }
             }
         }
+        stage('SBOM - Syft/Grype') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            curl -sSfL https://get.anchore.io/syft | sh -s -- -b /usr/local/bin
+                            curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
+                            rm -rf /scans || true
+                            mkdir /scans
+                            syft /app -o cyclonedx-json=/scans/sbom.json
+                            grype sbom:/scans/sbom.json
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / hashicorp') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/hashicorp" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / 0xdea') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/0xdea" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / akabe1') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/akabe1" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / atlassian-labs') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/atlassian-labs" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / community') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/community" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / decurity') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/decurity" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / dgryski') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/dgryski" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / dotta') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/dotta" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / elttam') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/elttam" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / kondukto') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/kondukto" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
+        stage('SAST / Semgrep / trailofbits') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    retry(2) {
+                        sh '''
+                            apt update && apt install -y gnupg curl wget unzip ca-certificates
+                            apt install python3 -y
+                            apt install python3-pip -y
+                            apt install python3-venv -y
+                            python3 -m venv ./.venv
+                            . ./.venv/bin/activate
+                            python3 -m pip install semgrep
+                            export SEMGREP_SEND_METRICS=off
+                            python3 -m  pip install semgrep-rules-manager
+                            mkdir -p $HOME/custom-semgrep-rules
+                            semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
+                            ls $HOME/custom-semgrep-rules
+                            cd /app
+                            semgrep --config="$HOME/custom-semgrep-rules/trailofbits" --metrics=off --dataflow-traces --debug
+                            deactivate
+                        '''
+                    }
+                }
+            }
+        }
         stage('Terraform') {
             steps {
                 timeout(time: 3, unit: 'MINUTES') {

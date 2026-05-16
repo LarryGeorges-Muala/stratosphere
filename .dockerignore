@@ -1,0 +1,30 @@
+
+
+.git
+
+# Terraform generated files
+.terraform/           # Directory where provider binaries and modules are downloaded
+**/.terraform/*
+**/.terraform/
+**/.terraform
+**/*.tfstate
+**/*.tfstate*
+*.tfstate             # Terraform state files (may contain sensitive data)
+*.tfstate.*.backup    # Backup files of the state file
+crash.log             # Crash log files
+.terraform.tfstate.*  # Other state file variants
+
+# Terraform CLI configuration files
+.terraformrc          # CLI configuration file (e.g., credentials or personal settings)
+terraform.rc          # Alternative CLI configuration file
+
+# Secure Variable Management
+# The .terraform.lock.hcl file should generally be committed to ensure consistent
+# provider versions across teams, but can be ignored for solo projects.
+# If you choose to ignore it:
+.terraform.lock.hcl
+**/.terraform.lock.hcl
+
+# Misc
+*.DS_Store*
+**/*.DS_Store*
