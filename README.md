@@ -8,6 +8,31 @@
 
 ![Diagram Recovery](diagram/Diagram-2.png)
 
+
+## CI/CD
+
+> GitHub: [github-actions.yml](.github/workflows/github-actions.yml)
+
+> GitLab: [gitlab-ci.yml](.gitlab-ci.yml)
+
+> Azure DevOps: [azure-pipelines.yml](azure-pipelines.yml)
+
+> Bitbucket: [bitbucket-pipelines.yml](bitbucket-pipelines.yml)
+
+
+## DevSecOps
+
+> Jenkins Container: [compose.yaml](compose.yaml)
+
+> Jenkins Pipeline with Vulnerability Scanner, SBOM and SAST: [Jenkinsfile](Jenkinsfile)
+
+- Vulnerability Scanner: [Trivy](https://github.com/aquasecurity/trivy)
+
+- SBOM: [Syft](https://github.com/anchore/syft) / [Grype](https://github.com/anchore/grype)
+
+- SAST: [Semgrep](https://github.com/semgrep/semgrep)
+
+
 ## Components
 
 > Note: Each component is built in a non-modular way to show the full implementation and to allow to independently create, update or delete them

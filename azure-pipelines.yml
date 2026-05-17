@@ -124,7 +124,8 @@ stages:
                     workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
                     script: |
                       find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
-                      helm package ./build-agents --destination ./build-agents/charts
+                      helm dependency update ./build-agents;
+                      helm package ./build-agents --destination ./build-agents/charts;
                       find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
                   condition: eq(variables['Agent.OS'], 'Linux')
 
@@ -135,7 +136,8 @@ stages:
                     workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
                     script: |
                       find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
-                      helm package ./game-2048 --destination ./game-2048/charts
+                      helm dependency update ./game-2048;
+                      helm package ./game-2048 --destination ./game-2048/charts;
                       find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
                   condition: eq(variables['Agent.OS'], 'Linux')
 
@@ -146,6 +148,7 @@ stages:
                     workingDirectory: '$(Build.SourcesDirectory)/infrastructure/workloads/devops/charts'
                     script: |
                       find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
-                      helm package ./nginx --destination ./nginx/charts
+                      helm dependency update ./nginx;
+                      helm package ./nginx --destination ./nginx/charts;
                       find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
                   condition: eq(variables['Agent.OS'], 'Linux')
