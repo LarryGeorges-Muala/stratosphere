@@ -97,11 +97,6 @@ resource "google_compute_network" "vpc" {
   routing_mode                    = "REGIONAL"
   enable_ula_internal_ipv6        = false
   delete_default_routes_on_create = false
-
-  tags = {
-    "Name"                     = "${each.key}-vpc"
-    "disaster_recovery_status" = local.disaster_recovery_status
-  }
 }
 
 ################################################################################
@@ -137,14 +132,6 @@ resource "google_compute_subnetwork" "vpc_subnet" {
     flow_sampling        = 0.5
     metadata             = "INCLUDE_ALL_METADATA"
   }
-
-  tags = {
-    "Name"                     = "${each.key}-vpc-subnet"
-    "vpc_id"                   = google_compute_network.vpc[each.key].id
-    "vpc_name"                 = "${each.key}-vpc"
-    "region"                   = each.key
-    "disaster_recovery_status" = local.disaster_recovery_status
-  }
 }
 
 ################################################################################
@@ -179,14 +166,6 @@ resource "google_container_cluster" "gke" {
 
   monitoring_config {
     enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
-  }
-
-  tags = {
-    "Name"                     = "${each.key}-gke"
-    "cluster_name"             = "${each.key}-gke"
-    "vpc_id"                   = google_compute_network.vpc[each.key].id
-    "vpc_name"                 = "${each.key}-vpc"
-    "disaster_recovery_status" = local.disaster_recovery_status
   }
 }
 
