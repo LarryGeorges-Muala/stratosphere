@@ -37,6 +37,7 @@ super-chart:
           podSecurityContext: {}
           securityContext: {}
           service:
+            enabled: true
             scheme: internal
             type: ClusterIP
             port: 80

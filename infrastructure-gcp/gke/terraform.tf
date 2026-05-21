@@ -10,6 +10,6 @@ terraform {
 }
 
 provider "google" {
-  project     = "stratosphere"
-  region      = local.region
+  project = "stratosphere-497017"
+  region  = local.region
 }

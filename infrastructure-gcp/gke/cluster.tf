@@ -26,7 +26,7 @@ locals {
 
   # main_availability_zone_ids     = data.google_compute_zones.asia.zone_ids
   # recovery_availability_zone_ids = data.google_compute_zones.europe.zone_ids
-  main_availability_zone_ids     = [
+  main_availability_zone_ids = [
     "asia-southeast1-a",
     "asia-southeast1-b",
     "asia-southeast1-c"
@@ -39,7 +39,7 @@ locals {
 
   # main_availability_zone_names     = data.google_compute_zones.asia.names
   # recovery_availability_zone_names = data.google_compute_zones.europe.names
-  main_availability_zone_names     = [
+  main_availability_zone_names = [
     "asia-southeast1-a",
     "asia-southeast1-b",
     "asia-southeast1-c"
@@ -91,11 +91,11 @@ locals {
 resource "google_compute_network" "vpc" {
   for_each = tomap(local.disaster_recovery)
 
-  name = "${each.key}-vpc"
-  auto_create_subnetworks  = false
-  mtu                     = 1460
-  routing_mode = "REGIONAL"
-  enable_ula_internal_ipv6 = false
+  name                            = "${each.key}-vpc"
+  auto_create_subnetworks         = false
+  mtu                             = 1460
+  routing_mode                    = "REGIONAL"
+  enable_ula_internal_ipv6        = false
   delete_default_routes_on_create = false
 
   tags = {
@@ -120,7 +120,7 @@ resource "google_compute_subnetwork" "vpc_subnet" {
 
   ip_cidr_range = each.value[0]
   region        = each.key
-  network = google_compute_network.vpc[each.key].id
+  network       = google_compute_network.vpc[each.key].id
 
   secondary_ip_range {
     range_name    = "services-range"
@@ -139,11 +139,11 @@ resource "google_compute_subnetwork" "vpc_subnet" {
   }
 
   tags = {
-    "Name"                                  = "${each.key}-vpc-subnet"
-    "vpc_id"                                = google_compute_network.vpc[each.key].id
-    "vpc_name"                              = "${each.key}-vpc"
-    "region"                                = each.key
-    "disaster_recovery_status"              = local.disaster_recovery_status
+    "Name"                     = "${each.key}-vpc-subnet"
+    "vpc_id"                   = google_compute_network.vpc[each.key].id
+    "vpc_name"                 = "${each.key}-vpc"
+    "region"                   = each.key
+    "disaster_recovery_status" = local.disaster_recovery_status
   }
 }
 
@@ -159,14 +159,14 @@ resource "google_container_cluster" "gke" {
 
   for_each = tomap(local.disaster_recovery)
 
-  name = "${each.key}-gke"
-  location                 = each.key
+  name           = "${each.key}-gke"
+  location       = each.key
   node_locations = each.value[1]
 
   remove_default_node_pool = true
-  initial_node_count = 1
+  initial_node_count       = 1
 
-  enable_autopilot         = true
+  enable_autopilot    = true
   deletion_protection = false
 
   network    = google_compute_network.vpc[each.key].id
@@ -199,8 +199,8 @@ resource "google_service_account" "gke" {
   depends_on = [
     google_container_cluster.gke
   ]
-  account_id   = "stratoshpere-gke"
-  display_name = "Service Account GKE"
+  account_id                   = "stratoshpere-gke"
+  display_name                 = "Service Account GKE"
   create_ignore_already_exists = true
 }
 
@@ -218,19 +218,19 @@ resource "google_container_node_pool" "gke_node_pool" {
 
   name       = "${each.key}-gke-node-pool"
   cluster    = google_container_cluster.gke[each.key].name
-  location                 = each.key
+  location   = each.key
   node_count = 1
 
   autoscaling {
-    min_node_count = 1
-    max_node_count = 30
+    min_node_count  = 1
+    max_node_count  = 30
     location_policy = "BALANCED"
   }
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type    = "e2-medium"
     service_account = google_service_account.gke.email
-    oauth_scopes    = [
+    oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
   }

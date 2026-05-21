@@ -20,6 +20,13 @@
 > Bitbucket: [bitbucket-pipelines.yml](bitbucket-pipelines.yml)
 
 
+## GitOps
+
+> EKS Argo-CD Release: [argo-cd.tf](infrastructure/argo-cd/argo-cd.tf)
+
+> Argo-CD Sample Application Config: [argo-cd-sample-application.yaml](infrastructure/argo-cd/argo-cd-sample-application.yaml)
+
+
 ## DevSecOps
 
 > Jenkins Container: [compose.yaml](compose.yaml)
