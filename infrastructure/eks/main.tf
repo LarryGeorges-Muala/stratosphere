@@ -267,15 +267,11 @@ resource "aws_eks_cluster" "eks" {
   }
 
   vpc_config {
-    # cluster_security_group_id = "sg-0fa42786bf928da89"
     endpoint_private_access = false
     endpoint_public_access  = true
 
     # public_access_cidrs = [
     #   "0.0.0.0/0"
-    # ]
-    # security_group_ids = [
-    #   "sg-0f25fdd75c0e0e7be"
     # ]
     # security_group_ids = [
     #   data.aws_security_group.ssh.id,
@@ -431,7 +427,7 @@ resource "aws_eks_node_group" "eks_node_group" {
 
   scaling_config {
     desired_size = 1
-    max_size     = 20
+    max_size     = 30
     min_size     = 1
   }
 

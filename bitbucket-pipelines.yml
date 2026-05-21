@@ -40,14 +40,14 @@ pipelines:
             - step:
                 name: Lint
                 script:
-                  - echo 'Starting env prep for testing...'
-                  - apt-get update
-                  - apt-get install curl gpg apt-transport-https --yes
-                  - curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
-                  - echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
-                  - apt-get update
-                  - apt-get install helm
-                  - helm version
+                  - echo 'Starting env prep for testing...';
+                  - apt-get update;
+                  - apt-get install curl gpg apt-transport-https --yes;
+                  - curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null;
+                  - echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list;
+                  - apt-get update;
+                  - apt-get install helm;
+                  - helm version;
                   - cd ${BITBUCKET_CLONE_DIR}/infrastructure/workloads/devops/charts;
                   - find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
                   - helm dependency update ./build-agents;
