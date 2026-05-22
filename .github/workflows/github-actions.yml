@@ -114,6 +114,6 @@ jobs:
           sudo curl -sSfL https://get.anchore.io/syft | sudo sh -s -- -b /usr/local/bin
           sudo curl -sSfL https://get.anchore.io/grype | sudo sh -s -- -b /usr/local/bin
           rm -rf /scans || true
-          mkdir /scans
+          sudo mkdir /scans
           syft ${{ github.workspace }} -o cyclonedx-json=/scans/sbom.json
           grype sbom:/scans/sbom.json
