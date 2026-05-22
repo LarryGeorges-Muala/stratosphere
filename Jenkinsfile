@@ -47,7 +47,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -72,7 +72,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -97,7 +97,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -122,7 +122,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -147,7 +147,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -172,7 +172,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -197,7 +197,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -222,7 +222,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -247,7 +247,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -272,7 +272,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules
@@ -297,7 +297,7 @@ pipeline {
                             . ./.venv/bin/activate
                             python3 -m pip install semgrep
                             export SEMGREP_SEND_METRICS=off
-                            python3 -m  pip install semgrep-rules-manager
+                            python3 -m pip install semgrep-rules-manager
                             mkdir -p $HOME/custom-semgrep-rules
                             semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
                             ls $HOME/custom-semgrep-rules

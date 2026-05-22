@@ -1,6 +1,7 @@
 stages:
   - plan
   - lint
+  - vulnerabilities_trivy
 
 default:
   image: ubuntu:24.04
@@ -59,3 +60,16 @@ helm_lint:
     - helm dependency update ./nginx;
     - helm package ./nginx --destination ./nginx/charts;
     - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+
+vulnerabilities_trivy:
+  stage: vulnerabilities_trivy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg curl wget unzip ca-certificates
+    - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | tee /usr/share/keyrings/trivy.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | tee -a /etc/apt/sources.list.d/trivy.list
+    - apt-get update
+    - apt-get install trivy -y
+    - trivy fs $CI_PROJECT_DIR
