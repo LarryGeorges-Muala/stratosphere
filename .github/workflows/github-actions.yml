@@ -96,7 +96,7 @@ jobs:
       - name: Vulnerabilities-Trivy
         run: |
           echo 'Starting env prep for testing...'
-          sudo apt update && apt install -y gnupg curl wget unzip ca-certificates
+          sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
           sudo wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
           sudo echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
@@ -110,7 +110,7 @@ jobs:
       - name: Vulnerabilities-SBOM-Syft-Grype
         run: |
           echo 'Starting env prep for testing...'
-          sudo apt update && apt install -y gnupg curl wget unzip ca-certificates
+          sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
           sudo curl -sSfL https://get.anchore.io/syft | sudo sh -s -- -b /usr/local/bin
           sudo curl -sSfL https://get.anchore.io/grype | sudo sh -s -- -b /usr/local/bin
           rm -rf /scans || true
