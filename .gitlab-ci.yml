@@ -2,6 +2,7 @@ stages:
   - plan
   - lint
   - vulnerabilities_trivy
+  - vulnerabilities_sbom_syft_grype
 
 default:
   image: ubuntu:24.04
@@ -73,3 +74,17 @@ vulnerabilities_trivy:
     - apt-get update
     - apt-get install trivy -y
     - trivy fs $CI_PROJECT_DIR
+
+vulnerabilities_sbom_syft_grype:
+  stage: vulnerabilities_sbom_syft_grype
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg curl wget unzip ca-certificates
+    - curl -sSfL https://get.anchore.io/syft | sh -s -- -b /usr/local/bin
+    - curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
+    - rm -rf /scans || true
+    - mkdir /scans
+    - syft $CI_PROJECT_DIR -o cyclonedx-json=/scans/sbom.json
+    - grype sbom:/scans/sbom.json

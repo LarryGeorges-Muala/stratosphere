@@ -61,3 +61,38 @@ pipelines:
                   - helm dependency update ./nginx;
                   - helm package ./nginx --destination ./nginx/charts;
                   - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+
+      - stage:
+          name: Vulnerabilities Trivy
+          condition:
+            state: BITBUCKET_BRANCH == "main"
+          trigger: automatic
+          steps:
+            - step:
+                name: Vulnerabilities Trivy
+                script:
+                  - echo 'Starting tests...'
+                  - apt update && apt install -y gnupg curl wget unzip ca-certificates
+                  - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | tee /usr/share/keyrings/trivy.gpg > /dev/null
+                  - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | tee -a /etc/apt/sources.list.d/trivy.list
+                  - apt-get update
+                  - apt-get install trivy -y
+                  - trivy fs ${BITBUCKET_CLONE_DIR}
+
+      - stage:
+          name: Vulnerabilities SBOM Syft Grype
+          condition:
+            state: BITBUCKET_BRANCH == "main"
+          trigger: automatic
+          steps:
+            - step:
+                name: Vulnerabilities SBOM Syft Grype
+                script:
+                  - echo 'Starting tests...'
+                  - apt update && apt install -y gnupg curl wget unzip ca-certificates
+                  - curl -sSfL https://get.anchore.io/syft | sh -s -- -b /usr/local/bin
+                  - curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
+                  - rm -rf /scans || true
+                  - mkdir /scans
+                  - syft ${BITBUCKET_CLONE_DIR} -o cyclonedx-json=/scans/sbom.json
+                  - grype sbom:/scans/sbom.json

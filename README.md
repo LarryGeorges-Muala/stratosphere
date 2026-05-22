@@ -33,6 +33,10 @@
 
 > Jenkins Pipeline with Vulnerability Scanner, SBOM and SAST: [Jenkinsfile](Jenkinsfile)
 
+> Docker Local Vulnerability Scanner, SBOM and SAST: [vulnerabilities.Dockerfile](vulnerabilities.Dockerfile)
+
+> Docker Local Vulnerability Container: [compose.yaml](compose.yaml)
+
 - Vulnerability Scanner: [Trivy](https://github.com/aquasecurity/trivy)
 
 - SBOM: [Syft](https://github.com/anchore/syft) / [Grype](https://github.com/anchore/grype)

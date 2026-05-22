@@ -152,3 +152,92 @@ stages:
                       helm package ./nginx --destination ./nginx/charts;
                       find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
                   condition: eq(variables['Agent.OS'], 'Linux')
+
+
+  - stage: vulnerabilities
+    displayName: Vulnerabilities
+    dependsOn: []
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+
+    jobs:
+      - job: vulnerabilities_trivy
+        displayName: Vulnerabilities Trivy
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            fetchTags: 'true'
+
+          - task: Bash@3
+            displayName: Testing environment prep
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'Starting env prep for testing...'
+                sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Trivy - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+                sudo echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                sudo apt-get update
+                sudo apt-get install trivy -y
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Trivy - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                trivy fs $(Build.SourcesDirectory)
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+      - job: vulnerabilities_sbom_syft_grype
+        displayName: Vulnerabilities SBOM Syft Grype
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            fetchTags: 'true'
+
+          - task: Bash@3
+            displayName: Testing environment prep
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'Starting env prep for testing...'
+                sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Syft/Grype - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo curl -sSfL https://get.anchore.io/syft | sudo sh -s -- -b /usr/local/bin
+                sudo curl -sSfL https://get.anchore.io/grype | sudo sh -s -- -b /usr/local/bin
+                rm -rf /scans || true
+                sudo mkdir /scans
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: SBOM - Syft - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo syft $(Build.SourcesDirectory) -o cyclonedx-json=/scans/sbom.json
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: SBOM - Grype - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo grype sbom:/scans/sbom.json
+            condition: eq(variables['Agent.OS'], 'Linux')
