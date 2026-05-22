@@ -59,7 +59,7 @@ RUN ls $HOME/custom-semgrep-rules
 # ### SAST / Semgrep / community
 # RUN semgrep --config="$HOME/custom-semgrep-rules/community" --metrics=off --dataflow-traces --debug >> /.vulnerabilities/semgrep.community.log
 # ### SAST / Semgrep / decurity
-# RUN semgrep --config="$HOME/custom-semgrep-rules/decurity" --metrics=off --dataflow-traces --debug >> /.vulnerabilities/semgrep.decurity.log
+# RUN semgrep --config="$HOME/custom-semgrep-rules/decurity" --metrics=off --dataflow-traces >> /.vulnerabilities/semgrep.decurity.log
 # ### SAST / Semgrep / dgryski
 # RUN semgrep --config="$HOME/custom-semgrep-rules/dgryski" --metrics=off --dataflow-traces --debug >> /.vulnerabilities/semgrep.dgryski.log
 # ### SAST / Semgrep / dotta
