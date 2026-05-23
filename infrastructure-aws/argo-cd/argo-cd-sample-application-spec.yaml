@@ -7,7 +7,7 @@ spec:
     name: 'in-cluster'
     namespace: 'game'
   source:
-    path: 'infrastructure/workloads/devops/charts/game-2048'
+    path: 'infrastructure-aws/workloads/devops/charts/game-2048'
     repoURL: 'https://github.com/LarryGeorges-Muala/stratosphere'
     targetRevision: HEAD
     helm:

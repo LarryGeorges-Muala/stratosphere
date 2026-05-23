@@ -22,9 +22,9 @@
 
 ## GitOps
 
-> EKS Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure/argo-cd/argo-cd.tf)
+> EKS Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-aws/argo-cd/argo-cd.tf)
 
-> Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure/argo-cd/argo-cd-sample-application-spec.yaml)
+> Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-aws/argo-cd/argo-cd-sample-application-spec.yaml)
 
 
 ## DevSecOps
@@ -42,22 +42,35 @@
 - SAST: [Semgrep](https://github.com/semgrep/semgrep)
 
 
-## Components
+## Components AWS
 
 > Note: Each component is built in a non-modular way to show the full implementation and to allow to independently create, update or delete them
 
-1. [VPC](infrastructure/vpc/main.tf)
-2. [VPC Flow Logs](infrastructure/security/vpc-flow-logs/main.tf)
-3. [Cloud Trail](infrastructure/security/cloud-trail/main.tf)
-4. [Network Load Balancers](infrastructure/load-balancer/main.tf)
-5. [Shield](infrastructure/security/shield/main.tf)
-6. [API Gateway](infrastructure/api-gateway/http/main.tf)
-7. [Databases](infrastructure/databases/aurora/main.tf)
-8. [Cache](infrastructure/databases/elasticache/main.tf)
-9. [EKS Cluster](infrastructure/eks/main.tf)
-10. [EKS Cluster IAM Permissions](infrastructure/eks/permissions.tf)
-11. [Kubernetes Namespaces](infrastructure/workloads/devops/namespaces/main.tf)
-12. [Kubernetes Secrets](infrastructure/workloads/devops/secrets/main.tf)
-13. [Helm Charts](infrastructure/workloads/devops/charts/)
-14. [CI/CD - Build Agents](infrastructure/workloads/devops/build-agents/main.tf)
-15. [Workload - Sample Game 2048 App](infrastructure/workloads/applications/game-2048/main.tf)
+1. [VPC](infrastructure-aws/vpc/main.tf)
+2. [VPC Flow Logs](infrastructure-aws/security/vpc-flow-logs/main.tf)
+3. [Cloud Trail](infrastructure-aws/security/cloud-trail/main.tf)
+4. [Network Load Balancers](infrastructure-aws/load-balancer/main.tf)
+5. [Shield](infrastructure-aws/security/shield/main.tf)
+6. [API Gateway](infrastructure-aws/api-gateway/http/main.tf)
+7. [Databases](infrastructure-aws/databases/aurora/main.tf)
+8. [Cache](infrastructure-aws/databases/elasticache/main.tf)
+9. [EKS Cluster](infrastructure-aws/eks/main.tf)
+10. [EKS Cluster IAM Permissions](infrastructure-aws/eks/permissions.tf)
+11. [Kubernetes Namespaces](infrastructure-aws/workloads/devops/namespaces/main.tf)
+12. [Kubernetes Secrets](infrastructure-aws/workloads/devops/secrets/main.tf)
+13. [Helm Charts](infrastructure-aws/workloads/devops/charts/)
+14. [CI/CD - Build Agents](infrastructure-aws/workloads/devops/build-agents/main.tf)
+15. [Workload - Sample Game 2048 App](infrastructure-aws/workloads/applications/game-2048/main.tf)
+16. [Rancher Instance](infrastructure-aws/rancher/main.tf)
+17. [Argo-CD](infrastructure-aws/argo-cd/argo-cd.tf)
+
+
+## Components GCP
+
+> Note: Each component is built in a non-modular way to show the full implementation and to allow to independently create, update or delete them
+
+1. [VPC](infrastructure-gcp/vpc/main.tf)
+2. [GKE Cluster](infrastructure-gcp/gke/main.tf)
+3. [Workload - Sample Game 2048 Chart](infrastructure-gcp/workloads/devops/charts/game-2048/)
+4. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
+5. [Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)

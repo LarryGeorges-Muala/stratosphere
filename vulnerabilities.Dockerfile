@@ -33,6 +33,7 @@ RUN python3 -m pip install semgrep-rules-manager
 RUN semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
 RUN ls $HOME/custom-semgrep-rules
 
+
 ## MANUAL SCANNING: docker exec -it vulnerabilities /bin/sh
 
 ## TRIVY

@@ -37,7 +37,7 @@ jobs:
 
       - name: VPC - TF Plan
         run: |
-          cd ${{ github.workspace }}/infrastructure/vpc
+          cd ${{ github.workspace }}/infrastructure-aws/vpc
           terraform init
           terraform plan
           aws configure set aws_access_key_id '' --profile terraform
@@ -67,7 +67,7 @@ jobs:
 
       - name: Lint - Build Agents
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
+          cd ${{ github.workspace }}/infrastructure-aws/workloads/devops/charts;
           find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm dependency update ./build-agents;
           helm package ./build-agents --destination ./build-agents/charts;
@@ -75,7 +75,7 @@ jobs:
 
       - name: Lint - Game 2048
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
+          cd ${{ github.workspace }}/infrastructure-aws/workloads/devops/charts;
           find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm dependency update ./game-2048;
           helm package ./game-2048 --destination ./game-2048/charts;
@@ -83,7 +83,7 @@ jobs:
 
       - name: Lint - Nginx
         run: |
-          cd ${{ github.workspace }}/infrastructure/workloads/devops/charts;
+          cd ${{ github.workspace }}/infrastructure-aws/workloads/devops/charts;
           find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
           helm dependency update ./nginx;
           helm package ./nginx --destination ./nginx/charts;
