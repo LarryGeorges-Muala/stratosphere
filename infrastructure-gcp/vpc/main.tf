@@ -1,3 +1,10 @@
+###############################################################################
+######
+### TF_LOG=INFO terraform apply -compact-warnings -auto-approve
+### TF_LOG=INFO terraform destroy -auto-approve
+######
+###############################################################################
+
 ################################################################################
 # VPC Availability Zones
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_zones
@@ -131,86 +138,5 @@ resource "google_compute_subnetwork" "vpc_subnet" {
     aggregation_interval = "INTERVAL_5_MIN"
     flow_sampling        = 0.5
     metadata             = "INCLUDE_ALL_METADATA"
-  }
-}
-
-################################################################################
-# Cluster
-# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster
-################################################################################
-
-resource "google_container_cluster" "gke" {
-  depends_on = [
-    google_compute_subnetwork.vpc_subnet
-  ]
-
-  for_each = tomap(local.disaster_recovery)
-
-  name           = "${each.key}-gke"
-  location       = each.key
-  node_locations = each.value[1]
-
-  remove_default_node_pool = true
-  initial_node_count       = 1
-
-  enable_autopilot    = true
-  deletion_protection = false
-
-  network    = google_compute_network.vpc[each.key].id
-  subnetwork = google_compute_subnetwork.vpc_subnet[each.key].id
-
-  ip_allocation_policy {
-    services_secondary_range_name = google_compute_subnetwork.vpc_subnet[each.key].secondary_ip_range[0].range_name
-    cluster_secondary_range_name  = google_compute_subnetwork.vpc_subnet[each.key].secondary_ip_range[1].range_name
-  }
-
-  monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS", "WORKLOADS"]
-  }
-}
-
-################################################################################
-# Service Account
-# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account
-################################################################################
-
-resource "google_service_account" "gke" {
-  depends_on = [
-    google_container_cluster.gke
-  ]
-  account_id                   = "stratoshpere-gke"
-  display_name                 = "Service Account GKE"
-  create_ignore_already_exists = true
-}
-
-################################################################################
-# Node Pool
-# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_node_pool
-################################################################################
-
-resource "google_container_node_pool" "gke_node_pool" {
-  depends_on = [
-    google_service_account.gke
-  ]
-
-  for_each = tomap(local.disaster_recovery)
-
-  name       = "${each.key}-gke-node-pool"
-  cluster    = google_container_cluster.gke[each.key].name
-  location   = each.key
-  node_count = 1
-
-  autoscaling {
-    min_node_count  = 1
-    max_node_count  = 30
-    location_policy = "BALANCED"
-  }
-
-  node_config {
-    machine_type    = "e2-medium"
-    service_account = google_service_account.gke.email
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
   }
 }
