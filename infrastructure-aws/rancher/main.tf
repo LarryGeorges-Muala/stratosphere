@@ -416,20 +416,11 @@ resource "aws_instance" "rancher" {
   depends_on = [
     aws_efs_access_point.origin
   ]
-
-  # https://ranchermanager.docs.rancher.com/reference-guides/single-node-rancher-in-docker/advanced-options
-  # https://medium.com/@hasanudin31113/managing-kubernetes-made-simple-with-rancher-a-docker-setup-guide-d40a13ddc13d
-  # https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/register-existing-clusters#:~:text=To%20successfully%20import%20or%20provision,full%20lifecycle%20support%20from%20Rancher.
-
-  for_each = tomap(local.disaster_recovery)
-
-  region = each.key
-
-  ami = data.aws_ami.ubuntu.id
-
+  for_each      = tomap(local.disaster_recovery)
+  region        = each.key
+  ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.medium"
-
-  subnet_id = data.aws_subnet.vpc_public_subnet_1[each.key].id
+  subnet_id     = data.aws_subnet.vpc_public_subnet_1[each.key].id
 
   vpc_security_group_ids = [
     data.aws_security_group.ssh[each.key].id,
@@ -481,8 +472,8 @@ resource "aws_lb_target_group_attachment" "rancher" {
   depends_on = [
     aws_instance.rancher
   ]
-  for_each    = tomap(local.disaster_recovery)
-  region      = each.key
+  for_each         = tomap(local.disaster_recovery)
+  region           = each.key
   target_group_arn = data.aws_lb_target_group.rancher[each.key].arn
   target_id        = aws_instance.rancher[each.key].private_ip
   port             = 80

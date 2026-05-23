@@ -123,7 +123,6 @@ resource "aws_network_acl" "vpc_network_acl" {
   depends_on = [
     aws_vpc.vpc
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -165,7 +164,6 @@ resource "aws_subnet" "vpc_private_subnet_1" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -213,7 +211,6 @@ resource "aws_subnet" "vpc_private_subnet_2" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -259,7 +256,6 @@ resource "aws_subnet" "vpc_private_subnet_3" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -278,7 +274,6 @@ resource "aws_subnet" "vpc_private_subnet_3" {
 
   map_customer_owned_ip_on_launch = null
   map_public_ip_on_launch         = null
-
 
   private_dns_hostname_type_on_launch = "ip-name"
 
@@ -306,7 +301,6 @@ resource "aws_subnet" "vpc_public_subnet_1" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -352,7 +346,6 @@ resource "aws_subnet" "vpc_public_subnet_2" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -398,7 +391,6 @@ resource "aws_subnet" "vpc_public_subnet_3" {
   depends_on = [
     aws_network_acl.vpc_network_acl
   ]
-
   for_each = tomap(local.disaster_recovery)
 
   vpc_id = aws_vpc.vpc[each.key].id
@@ -602,12 +594,9 @@ resource "aws_route_table" "vpc_route_table_public" {
   depends_on = [
     aws_nat_gateway.vpc_nat_gateway
   ]
-
   for_each = tomap(local.disaster_recovery)
-
-  vpc_id = aws_vpc.vpc[each.key].id
-
-  region = each.key
+  vpc_id   = aws_vpc.vpc[each.key].id
+  region   = each.key
 
   # VPC Range
   route {
@@ -638,12 +627,9 @@ resource "aws_route_table" "vpc_route_table_private" {
   depends_on = [
     aws_nat_gateway.vpc_nat_gateway
   ]
-
   for_each = tomap(local.disaster_recovery)
-
-  vpc_id = aws_vpc.vpc[each.key].id
-
-  region = each.key
+  vpc_id   = aws_vpc.vpc[each.key].id
+  region   = each.key
 
   # Remaining Range
   route {

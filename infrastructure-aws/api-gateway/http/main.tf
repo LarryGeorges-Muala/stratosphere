@@ -73,8 +73,7 @@ data "aws_availability_zones" "europe" {
 
 data "aws_vpc" "vpc" {
   for_each = tomap(local.disaster_recovery)
-
-  region = each.key
+  region   = each.key
 
   filter {
     name   = "tag:Name"
@@ -239,10 +238,9 @@ resource "aws_apigatewayv2_integration" "game_2048" {
   depends_on = [
     aws_apigatewayv2_api.http_api
   ]
-  for_each = tomap(local.disaster_recovery)
-  region   = each.key
-  api_id   = aws_apigatewayv2_api.http_api[each.key].id
-  # credentials_arn  = aws_iam_role.example.arn
+  for_each         = tomap(local.disaster_recovery)
+  region           = each.key
+  api_id           = aws_apigatewayv2_api.http_api[each.key].id
   description      = "GAME 2048 NLB"
   integration_type = "HTTP_PROXY"
   integration_uri  = data.aws_lb_listener.game_2048[each.key].arn
@@ -250,29 +248,6 @@ resource "aws_apigatewayv2_integration" "game_2048" {
   integration_method = "ANY"
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.vpc_link[each.key].id
-
-  # tls_config {
-  #   server_name_to_verify = "example.com"
-  # }
-
-  # request_parameters = {
-  #   "append:header.authforintegration" = "$context.authorizer.authorizerResponse"
-  #   "overwrite:path"                   = "staticValueForIntegration"
-  # }
-
-  # response_parameters {
-  #   status_code = 403
-  #   mappings = {
-  #     "append:header.auth" = "$context.authorizer.authorizerResponse"
-  #   }
-  # }
-
-  # response_parameters {
-  #   status_code = 200
-  #   mappings = {
-  #     "overwrite:statuscode" = "204"
-  #   }
-  # }
 }
 
 ## NGINX
@@ -290,10 +265,6 @@ resource "aws_apigatewayv2_integration" "nginx" {
   integration_method = "ANY"
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.vpc_link[each.key].id
-
-  # tls_config {
-  #   server_name_to_verify = "example.com"
-  # }
 }
 
 ################################################################################
@@ -309,7 +280,6 @@ resource "aws_apigatewayv2_route" "game_2048" {
   for_each  = tomap(local.disaster_recovery)
   region    = each.key
   api_id    = aws_apigatewayv2_api.http_api[each.key].id
-  # route_key = "GET /{proxy+}"
   route_key = "$default"
 
   target = "integrations/${aws_apigatewayv2_integration.game_2048[each.key].id}"
@@ -336,7 +306,7 @@ resource "aws_apigatewayv2_route" "nginx_trailing" {
   region    = aws_apigatewayv2_route.nginx[each.key].region
   api_id    = aws_apigatewayv2_route.nginx[each.key].api_id
   route_key = "${aws_apigatewayv2_route.nginx[each.key].route_key}/{proxy+}"
-  target = aws_apigatewayv2_route.nginx[each.key].target
+  target    = aws_apigatewayv2_route.nginx[each.key].target
 }
 
 ################################################################################

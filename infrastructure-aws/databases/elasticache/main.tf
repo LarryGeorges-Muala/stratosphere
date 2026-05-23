@@ -89,8 +89,7 @@ data "aws_availability_zones" "europe" {
 
 data "aws_vpc" "vpc" {
   for_each = tomap(local.disaster_recovery)
-
-  region = each.key
+  region   = each.key
 
   filter {
     name   = "tag:Name"

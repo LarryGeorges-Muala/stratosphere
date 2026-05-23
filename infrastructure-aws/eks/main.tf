@@ -73,8 +73,7 @@ locals {
 
 data "aws_vpc" "vpc" {
   for_each = tomap(local.disaster_recovery)
-
-  region = each.key
+  region   = each.key
 
   filter {
     name   = "tag:Name"
@@ -234,7 +233,6 @@ resource "aws_eks_cluster" "eks" {
     aws_iam_role_policy_attachment.eks_node_role_AmazonEC2ContainerRegistryPullOnly,
     aws_iam_role_policy_attachment.eks_node_role_AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks_node_role_AmazonEC2ContainerRegistryReadOnly,
-    # aws_iam_role_policy_attachment.eks_node_role_AmazonEC2ContainerRegistryFullAccess,
     aws_iam_role_policy_attachment.eks_addon_role_AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.eks_addon_role_AmazonEKSComputePolicy,
     aws_iam_role_policy_attachment.eks_addon_role_AmazonEKSBlockStoragePolicy,
@@ -261,7 +259,6 @@ resource "aws_eks_cluster" "eks" {
   version = "1.34"
 
   access_config {
-    # authentication_mode = "API_AND_CONFIG_MAP"
     authentication_mode                         = "API"
     bootstrap_cluster_creator_admin_permissions = true
   }
@@ -270,89 +267,12 @@ resource "aws_eks_cluster" "eks" {
     endpoint_private_access = false
     endpoint_public_access  = true
 
-    # public_access_cidrs = [
-    #   "0.0.0.0/0"
-    # ]
-    # security_group_ids = [
-    #   data.aws_security_group.ssh.id,
-    #   data.aws_security_group.http.id,
-    #   data.aws_security_group.https.id,
-    #   data.aws_security_group.open.id,
-    # ]
     subnet_ids = [
       data.aws_subnet.vpc_private_subnet_1[each.key].id,
       data.aws_subnet.vpc_private_subnet_2[each.key].id,
       data.aws_subnet.vpc_private_subnet_3[each.key].id
     ]
   }
-
-  # compute_config {
-  #   enabled = true
-  #   node_pools = [
-  #     "general-purpose",
-  #     "system"
-  #   ]
-  #   # node_pools    = null
-  #   node_role_arn = aws_iam_role.eks_node_role.arn
-  # }
-
-  # kubernetes_network_config {
-  #   elastic_load_balancing {
-  #     enabled = true
-  #   }
-  #   ip_family         = "ipv4"
-  #   # service_ipv4_cidr = "172.16.0.0/12"
-  #   # service_ipv4_cidr = local.vpc_cidr_block_1_range_2
-  #   service_ipv4_cidr = null
-  #   service_ipv6_cidr = null
-  # }
-
-  # storage_config {
-  #   block_storage {
-  #     enabled = true
-  #   }
-  # }
-
-  # control_plane_scaling_config {
-  #   tier = "standard"
-  # }
-
-  # bootstrap_self_managed_addons = false
-
-  # deletion_protection = false
-
-  # enabled_cluster_log_types = []
-
-  # force_update_version = null
-
-  # upgrade_policy {
-  #   support_type = "STANDARD"
-  # }
-
-  # zonal_shift_config {
-  #     enabled = false
-  # }
-
-  # encryption_config {
-  #   provider {
-  #     key_arn = ""
-  #   }
-  #   resources = []
-  # }
-
-  # remote_network_config {
-  #   remote_node_networks {
-  #     cidrs = ["172.16.0.0/18"]
-  #   }
-  #   remote_pod_networks {
-  #     cidrs = ["172.16.64.0/18"]
-  #   }
-  # }
-
-  # outpost_config {
-  #   control_plane_instance_type = "m5.large"
-  #   outpost_arns                = [data.aws_outposts_outpost.example.arn]
-  # }
 
   tags = {
     "Name"                     = "${each.key}-eks"
@@ -362,36 +282,6 @@ resource "aws_eks_cluster" "eks" {
     "disaster_recovery_status" = local.disaster_recovery_status
   }
 }
-
-################################################################################
-# EKS Node Group Launch Template
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
-################################################################################
-# resource "aws_launch_template" "eks_launch_template" {
-#   depends_on = [aws_eks_cluster.eks]
-
-#   name = "${local.region}-eks-node-launch-template"
-
-#   instance_type = "t3.medium"
-
-#   block_device_mappings {
-#     device_name = "/dev/sdf"
-
-#     ebs {
-#       volume_size = 20
-#     }
-#   }
-
-#   # vpc_security_group_ids = [
-#   #   data.aws_security_group.ssh.id,
-#   #   data.aws_security_group.http.id,
-#   #   data.aws_security_group.https.id,
-#   #   data.aws_security_group.open.id
-#   # ]
-
-#   user_data = filebase64("${path.module}/scripts/bootstrap-node-group.sh")
-
-# }
 
 ################################################################################
 # EKS Node Group
@@ -404,7 +294,6 @@ resource "aws_eks_node_group" "eks_node_group" {
   depends_on = [
     aws_eks_addon.eks_pod_identity_agent,
     aws_eks_addon.vpc_cni
-    # aws_launch_template.eks_launch_template
   ]
 
   for_each = tomap(local.disaster_recovery)
@@ -431,19 +320,8 @@ resource "aws_eks_node_group" "eks_node_group" {
     min_size     = 1
   }
 
-  # remote_access {
-  #   source_security_group_ids = [
-  #     data.aws_security_group.ssh.id,
-  #     data.aws_security_group.http.id,
-  #     data.aws_security_group.https.id,
-  #     data.aws_security_group.open.id,
-  #   ]
-  #   ec2_ssh_key = null
-  # }
-
   update_config {
     max_unavailable = 1
-    # update_strategy = "DEFAULT"
   }
 
   # Optional: Allow external changes without Terraform plan difference
@@ -456,18 +334,11 @@ resource "aws_eks_node_group" "eks_node_group" {
   disk_size = 30
 
   ## Pod Count - https://github.com/awslabs/amazon-eks-ami/blob/main/templates/shared/runtime/eni-max-pods.txt
-  # instance_types = ["t3a.large"]
   instance_types = ["t3a.xlarge"]
 
   labels = {
     role = "general"
   }
-
-  # launch_template {
-  #   name = aws_launch_template.eks_launch_template.name
-  #   version = "$Latest"
-  # }
-
 }
 
 ################################################################################
@@ -1222,7 +1093,3 @@ resource "helm_release" "load_balancer_controller_disaster_recovery" {
     }
   ]
 }
-
-################################################################################
-# END - EKS
-################################################################################

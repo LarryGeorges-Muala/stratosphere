@@ -73,8 +73,7 @@ data "aws_availability_zones" "europe" {
 
 data "aws_vpc" "vpc" {
   for_each = tomap(local.disaster_recovery)
-
-  region = each.key
+  region   = each.key
 
   filter {
     name   = "tag:Name"
@@ -175,18 +174,13 @@ data "aws_security_group" "loadbalancer" {
 ## Game 2048
 resource "aws_lb" "game_2048" {
   for_each = tomap(local.disaster_recovery)
+  region   = each.key
+  name     = "${each.key}-nlb-game-2048"
 
-  region = each.key
-
-  name = "${each.key}-nlb-game-2048"
-
-  internal = true
-
-  load_balancer_type = "network"
-
+  internal                   = true
+  load_balancer_type         = "network"
   enable_deletion_protection = false
-
-  preserve_host_header = true
+  preserve_host_header       = true
 
   security_groups = [
     data.aws_security_group.loadbalancer[each.key].id
@@ -251,18 +245,13 @@ resource "aws_lb" "game_2048" {
 ## Rancher
 resource "aws_lb" "rancher" {
   for_each = tomap(local.disaster_recovery)
+  region   = each.key
+  name     = "${each.key}-nlb-rancher"
 
-  region = each.key
-
-  name = "${each.key}-nlb-rancher"
-
-  internal = true
-
-  load_balancer_type = "network"
-
+  internal                   = true
+  load_balancer_type         = "network"
   enable_deletion_protection = false
-
-  preserve_host_header = true
+  preserve_host_header       = true
 
   security_groups = [
     data.aws_security_group.loadbalancer[each.key].id
@@ -327,18 +316,13 @@ resource "aws_lb" "rancher" {
 ## Nginx
 resource "aws_lb" "nginx" {
   for_each = tomap(local.disaster_recovery)
+  region   = each.key
+  name     = "${each.key}-nlb-nginx"
 
-  region = each.key
-
-  name = "${each.key}-nlb-nginx"
-
-  internal = true
-
-  load_balancer_type = "network"
-
+  internal                   = true
+  load_balancer_type         = "network"
   enable_deletion_protection = false
-
-  preserve_host_header = true
+  preserve_host_header       = true
 
   security_groups = [
     data.aws_security_group.loadbalancer[each.key].id
