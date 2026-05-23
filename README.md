@@ -74,3 +74,14 @@
 3. [Workload - Sample Game 2048 Chart](infrastructure-gcp/workloads/devops/charts/game-2048/)
 4. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
 5. [Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)
+
+
+## Components AKS
+
+> Note: Each component is built in a non-modular way to show the full implementation and to allow to independently create, update or delete them
+
+1. [VPC](infrastructure-azure/vpc/main.tf)
+2. [GKE Cluster](infrastructure-azure/aks/main.tf)
+3. [Workload - Sample Game 2048 Chart](infrastructure-azure/workloads/devops/charts/game-2048/)
+4. [Rancher Instance](infrastructure-azure/rancher/main.tf)
+5. [Argo-CD](infrastructure-azure/argo-cd/argo-cd.tf)
