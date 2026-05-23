@@ -97,7 +97,7 @@ locals {
 
 data "google_compute_network" "vpc" {
   for_each = tomap(local.disaster_recovery)
-  name = "${each.key}-vpc"
+  name     = "${each.key}-vpc"
 }
 
 ################################################################################
@@ -107,8 +107,8 @@ data "google_compute_network" "vpc" {
 
 data "google_compute_subnetwork" "vpc_subnet" {
   for_each = tomap(local.disaster_recovery)
-  name   = "${each.key}-vpc-subnet"
-  region = each.key
+  name     = "${each.key}-vpc-subnet"
+  region   = each.key
 }
 
 ################################################################################
@@ -131,15 +131,13 @@ resource "google_compute_instance" "rancher" {
   depends_on = [
     google_service_account.rancher
   ]
-
-  for_each = tomap(local.disaster_recovery)
-
+  for_each     = tomap(local.disaster_recovery)
   name         = "${each.key}-rancher"
   zone         = each.value[1][0]
   machine_type = "n2-standard-2"
 
   network_interface {
-    network = data.google_compute_network.vpc[each.key].name
+    network    = data.google_compute_network.vpc[each.key].name
     subnetwork = data.google_compute_subnetwork.vpc_subnet[each.key].name
     access_config {
     }
@@ -148,11 +146,11 @@ resource "google_compute_instance" "rancher" {
   boot_disk {
     auto_delete = true
     device_name = "${each.key}-rancher-boot"
-    mode = "READ_WRITE"
+    mode        = "READ_WRITE"
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
-      size  = 30
-      type  = "pd-standard"
+      image        = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
+      size         = 30
+      type         = "pd-standard"
       architecture = "x86_64"
     }
   }
@@ -164,7 +162,7 @@ resource "google_compute_instance" "rancher" {
   metadata_startup_script = file("${path.module}/scripts/bootstrap-rancher.sh")
 
   service_account {
-    email  = google_service_account.default.email
+    email = google_service_account.default.email
     scopes = [
       "cloud-platform"
     ]

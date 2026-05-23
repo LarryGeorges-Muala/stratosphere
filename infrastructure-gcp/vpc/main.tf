@@ -96,8 +96,7 @@ locals {
 ################################################################################
 
 resource "google_compute_network" "vpc" {
-  for_each = tomap(local.disaster_recovery)
-
+  for_each                        = tomap(local.disaster_recovery)
   name                            = "${each.key}-vpc"
   auto_create_subnetworks         = false
   mtu                             = 1460
@@ -115,11 +114,8 @@ resource "google_compute_subnetwork" "vpc_subnet" {
   depends_on = [
     google_compute_network.vpc
   ]
-
-  for_each = tomap(local.disaster_recovery)
-
-  name = "${each.key}-vpc-subnet"
-
+  for_each      = tomap(local.disaster_recovery)
+  name          = "${each.key}-vpc-subnet"
   ip_cidr_range = each.value[0]
   region        = each.key
   network       = google_compute_network.vpc[each.key].id

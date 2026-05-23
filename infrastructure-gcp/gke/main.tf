@@ -40,7 +40,7 @@ locals {
 
 data "google_compute_network" "vpc" {
   for_each = tomap(local.disaster_recovery)
-  name = "${each.key}-vpc"
+  name     = "${each.key}-vpc"
 }
 
 ################################################################################
@@ -50,8 +50,8 @@ data "google_compute_network" "vpc" {
 
 data "google_compute_subnetwork" "vpc_subnet" {
   for_each = tomap(local.disaster_recovery)
-  name   = "${each.key}-vpc-subnet"
-  region = each.key
+  name     = "${each.key}-vpc-subnet"
+  region   = each.key
 }
 
 ################################################################################
@@ -60,20 +60,16 @@ data "google_compute_subnetwork" "vpc_subnet" {
 ################################################################################
 
 resource "google_container_cluster" "gke" {
-  for_each = tomap(local.disaster_recovery)
-
-  name           = "${each.key}-gke"
-  location       = each.key
-  node_locations = each.value[1]
-
+  for_each                 = tomap(local.disaster_recovery)
+  name                     = "${each.key}-gke"
+  location                 = each.key
+  node_locations           = each.value[1]
   remove_default_node_pool = true
   initial_node_count       = 1
-
-  enable_autopilot    = true
-  deletion_protection = false
-
-  network    = data.google_compute_network.vpc[each.key].name
-  subnetwork = data.google_compute_subnetwork.vpc_subnet[each.key].name
+  enable_autopilot         = true
+  deletion_protection      = false
+  network                  = data.google_compute_network.vpc[each.key].name
+  subnetwork               = data.google_compute_subnetwork.vpc_subnet[each.key].name
 
   ip_allocation_policy {
     services_secondary_range_name = data.google_compute_subnetwork.vpc_subnet[each.key].secondary_ip_range[0].range_name
@@ -114,9 +110,7 @@ resource "google_container_node_pool" "gke_node_pool" {
   depends_on = [
     google_service_account.gke
   ]
-
-  for_each = tomap(local.disaster_recovery)
-
+  for_each   = tomap(local.disaster_recovery)
   name       = "${each.key}-gke-node-pool"
   cluster    = google_container_cluster.gke[each.key].name
   location   = each.key
