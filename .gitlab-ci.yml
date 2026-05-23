@@ -73,7 +73,7 @@ vulnerabilities_trivy:
     - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | tee -a /etc/apt/sources.list.d/trivy.list
     - apt-get update
     - apt-get install trivy -y
-    - trivy fs $CI_PROJECT_DIR
+    - trivy fs $CI_PROJECT_DIR --include-dev-deps --dependency-tree
 
 vulnerabilities_sbom_syft_grype:
   stage: vulnerabilities_sbom_syft_grype

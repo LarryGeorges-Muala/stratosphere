@@ -13,7 +13,7 @@
 
 > GitHub: [github-actions.yml](.github/workflows/github-actions.yml)
 
-> GitLab: [gitlab-ci.yml](.gitlab-ci.yml)
+> GitLab: [.gitlab-ci.yml](.gitlab-ci.yml)
 
 > Azure DevOps: [azure-pipelines.yml](azure-pipelines.yml)
 
@@ -22,20 +22,18 @@
 
 ## GitOps
 
-> EKS Argo-CD Release: [argo-cd.tf](infrastructure/argo-cd/argo-cd.tf)
+> EKS Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure/argo-cd/argo-cd.tf)
 
-> Argo-CD Sample Application Config: [argo-cd-sample-application.yaml](infrastructure/argo-cd/argo-cd-sample-application.yaml)
+> Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure/argo-cd/argo-cd-sample-application-spec.yaml)
 
 
 ## DevSecOps
 
-> Jenkins Container: [compose.yaml](compose.yaml)
+> Jenkins Container: [compose.yaml](compose.yaml) / [jenkins.Dockerfile](jenkins.Dockerfile)
 
 > Jenkins Pipeline with Vulnerability Scanner, SBOM and SAST: [Jenkinsfile](Jenkinsfile)
 
-> Docker Local Vulnerability Scanner, SBOM and SAST: [vulnerabilities.Dockerfile](vulnerabilities.Dockerfile)
-
-> Docker Local Vulnerability Container: [compose.yaml](compose.yaml)
+> Docker Local Vulnerability Scanner, SBOM and SAST Container: [compose.yaml](compose.yaml) / [vulnerabilities.Dockerfile](vulnerabilities.Dockerfile)
 
 - Vulnerability Scanner: [Trivy](https://github.com/aquasecurity/trivy)
 

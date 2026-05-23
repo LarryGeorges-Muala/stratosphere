@@ -36,7 +36,7 @@ RUN ls $HOME/custom-semgrep-rules
 ## MANUAL SCANNING: docker exec -it vulnerabilities /bin/sh
 
 ## TRIVY
-# RUN trivy fs /app >> /.vulnerabilities/trivy.log
+# RUN trivy fs /app --include-dev-deps --dependency-tree >> /.vulnerabilities/trivy.log
 
 
 ## SBOM - Syft/Grype
