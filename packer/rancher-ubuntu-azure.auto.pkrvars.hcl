@@ -1,0 +1,8 @@
+main_client_id= ""
+recovery_client_id= ""
+main_client_secret= ""
+recovery_client_secret= ""
+main_subscription_id= ""
+recovery_subscription_id= ""
+main_tenant_id= ""
+recovery_tenant_id= ""

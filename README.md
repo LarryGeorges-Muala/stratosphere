@@ -62,7 +62,7 @@
 
 ---
 
-## Components
+## IaC Components
 
 > Note: Each component is built in a non-modular way to show the full implementation and to allow to independently create, update or delete them
 
@@ -103,3 +103,19 @@
 3. [Workload - Sample Game 2048 Chart](infrastructure-azure/workloads/devops/charts/game-2048/)
 4. [Rancher Instance](infrastructure-azure/rancher/main.tf)
 5. [AKS Argo-CD](infrastructure-azure/argo-cd/argo-cd.tf)
+
+---
+
+## IaC Tooling
+
+### AWS
+
+> Packer Golden AMI: [packer/rancher-ubuntu-aws.pkr.hcl](packer/rancher-ubuntu-aws.pkr.hcl)
+
+### GCP
+
+> Packer Golden Image: [packer/rancher-ubuntu-gcp.pkr.hcl](packer/rancher-ubuntu-gcp.pkr.hcl)
+
+### AZURE
+
+> Packer Golden VM: [packer/rancher-ubuntu-azure.pkr.hcl](packer/rancher-ubuntu-azure.pkr.hcl)

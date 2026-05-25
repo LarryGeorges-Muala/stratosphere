@@ -30,6 +30,10 @@ sudo apt install nfs-common -y | sudo tee -a startup.log
 
 sudo mkdir /rancher | sudo tee -a startup.log
 
+sudo mkdir -p /efs/rancher | sudo tee -a startup.log
+
+sudo chmod go+rw /efs
+
 sudo docker run -d --restart=unless-stopped --name rancher --hostname rancher --privileged -p 80:80 -p 443:443 -v /rancher:/var/lib/rancher rancher/rancher:latest | sudo tee -a startup.log
 
 (sudo crontab -l 2>/dev/null; echo "*/5 * * * * sudo rsync -avu --delete /rancher /efs") | sudo crontab -
