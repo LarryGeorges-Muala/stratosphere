@@ -45,6 +45,8 @@ node_modules/*
 *.venv
 **/*.env
 **/*.venv
+*.venv-ansible
+**/.venv-ansible
 
 # Misc
 *.DS_Store*
