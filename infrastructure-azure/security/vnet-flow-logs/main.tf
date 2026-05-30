@@ -58,99 +58,78 @@ data "azurerm_virtual_network" "vnet" {
 }
 
 ################################################################################
-# Data - VNET Network Security Group
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/network_security_group
+# Data - Network Watcher
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/network_watcher
 ################################################################################
 
-data "azurerm_network_security_group" "nacl" {
+data "azurerm_network_watcher" "watcher" {
   for_each            = tomap(local.disaster_recovery)
-  name                = "${each.key}-sg-nacl"
+  name                = "${each.key}-network-watcher"
   resource_group_name = each.key
 }
 
 ################################################################################
-# Data - Subnets
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet
+# VNET Flow Logs - Storage
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account
 ################################################################################
 
-data "azurerm_subnet" "private" {
-  for_each             = tomap(local.disaster_recovery)
-  name                 = "${each.key}-vnet-subnet-private"
-  virtual_network_name = data.azurerm_virtual_network.vnet[each.key].name
-  resource_group_name  = each.key
-}
-
-data "azurerm_subnet" "public" {
-  for_each             = tomap(local.disaster_recovery)
-  name                 = "${each.key}-vnet-subnet-public"
-  virtual_network_name = data.azurerm_virtual_network.vnet[each.key].name
-  resource_group_name  = each.key
+resource "azurerm_storage_account" "vnet_flow_logs" {
+  for_each                 = tomap(local.disaster_recovery)
+  name                = "${each.key}-flow-logs"
+  resource_group_name = each.key
+  location            = each.key
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
 }
 
 ################################################################################
-# SSH
-# https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key
+# VNET Flow Logs - Workspace
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace
 ################################################################################
 
-resource "tls_private_key" "aks" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-################################################################################
-# AKS
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster
-################################################################################
-
-resource "azurerm_kubernetes_cluster" "aks" {
+resource "azurerm_log_analytics_workspace" "vnet_flow_logs" {
   depends_on = [
-    tls_private_key.aks
+    azurerm_storage_account.vnet_flow_logs
   ]
-  for_each            = tomap(local.disaster_recovery)
-  name                = "${each.key}-aks"
+  for_each                 = tomap(local.disaster_recovery)
+  name                = "${each.key}-workspace-flow-logs"
   location            = each.key
   resource_group_name = each.key
-  dns_prefix          = "${each.key}-aks"
-  kubernetes_version  = "1.34"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  default_node_pool {
-    name                         = "${each.key}-aks-node-pool"
-    vm_size                      = "Standard_D2_v2"
-    node_count                   = 1
-    os_disk_size_gb              = 30
-    only_critical_addons_enabled = false
-    vnet_subnet_id               = data.azurerm_subnet.private[each.key].id
-    zones                        = ["1", "2", "3"]
-    temporary_name_for_rotation  = "${each.key}-aks-node-pool-standby"
-  }
-  linux_profile {
-    admin_username = "${each.key}-aks"
-
-    ssh_key {
-      key_data = tls_private_key.aks.public_key_openssh
-    }
-  }
-  network_profile {
-    network_plugin    = "kubenet"
-    load_balancer_sku = "standard"
-  }
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 ################################################################################
-# AKS - Extension
-# https://registry.terraform.io/providers/hashicorp/Azurerm/latest/docs/resources/kubernetes_cluster_extension
+# VNET Flow Logs
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher_flow_log
 ################################################################################
 
-resource "azurerm_kubernetes_cluster_extension" "container" {
+resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
   depends_on = [
-    azurerm_kubernetes_cluster.aks
+    azurerm_log_analytics_workspace.vnet_flow_logs
   ]
-  for_each            = tomap(local.disaster_recovery)
-  name           = "${each.key}-containers-storage"
-  cluster_id     = azurerm_kubernetes_cluster.aks[each.key].id
-  extension_type = "microsoft.azurecontainerstoragev2"
+  for_each                 = tomap(local.disaster_recovery)
+  network_watcher_name = data.azurerm_network_watcher.watcher[each.key].name
+  resource_group_name  = each.key
+  location  = each.key
+  name                 = "${each.key}-vnet-flow-logs"
+
+  target_resource_id = data.azurerm_virtual_network.vnet[each.key].id
+  storage_account_id = azurerm_storage_account.vnet_flow_logs[each.key].id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 30
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = azurerm_log_analytics_workspace.vnet_flow_logs[each.key].workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.vnet_flow_logs[each.key].location
+    workspace_resource_id = azurerm_log_analytics_workspace.vnet_flow_logs[each.key].id
+    interval_in_minutes   = 10
+  }
 }

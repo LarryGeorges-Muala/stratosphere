@@ -58,99 +58,90 @@ data "azurerm_virtual_network" "vnet" {
 }
 
 ################################################################################
-# Data - VNET Network Security Group
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/network_security_group
+# Data - Network Watcher
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/network_watcher
 ################################################################################
 
-data "azurerm_network_security_group" "nacl" {
+data "azurerm_network_watcher" "watcher" {
   for_each            = tomap(local.disaster_recovery)
-  name                = "${each.key}-sg-nacl"
+  name                = "${each.key}-network-watcher"
   resource_group_name = each.key
 }
 
 ################################################################################
-# Data - Subnets
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet
+# Subnets
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet
 ################################################################################
 
-data "azurerm_subnet" "private" {
+resource "azurerm_subnet" "firewall" {
   for_each             = tomap(local.disaster_recovery)
-  name                 = "${each.key}-vnet-subnet-private"
-  virtual_network_name = data.azurerm_virtual_network.vnet[each.key].name
+  name                 = "AzureFirewallSubnet"
   resource_group_name  = each.key
-}
-
-data "azurerm_subnet" "public" {
-  for_each             = tomap(local.disaster_recovery)
-  name                 = "${each.key}-vnet-subnet-public"
   virtual_network_name = data.azurerm_virtual_network.vnet[each.key].name
-  resource_group_name  = each.key
+  address_prefixes = [
+    cidrsubnet(data.azurerm_virtual_network.vnet[each.key].address_space[0], 8, 0)
+  ]
+  default_outbound_access_enabled = true
 }
 
 ################################################################################
-# SSH
-# https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key
+# Firewall - Public IP
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip
 ################################################################################
 
-resource "tls_private_key" "aks" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-################################################################################
-# AKS
-# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster
-################################################################################
-
-resource "azurerm_kubernetes_cluster" "aks" {
+resource "azurerm_public_ip" "firewall" {
   depends_on = [
-    tls_private_key.aks
+    azurerm_subnet.firewall
   ]
   for_each            = tomap(local.disaster_recovery)
-  name                = "${each.key}-aks"
+  name                = "${each.key}-ip-firewall"
+  resource_group_name = each.key
+  location            = each.key
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+################################################################################
+# Firewall
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall
+################################################################################
+
+resource "azurerm_firewall" "firewall" {
+  depends_on = [
+    azurerm_public_ip.firewall
+  ]
+  for_each            = tomap(local.disaster_recovery)
+  name                = "${each.key}-firewall"
   location            = each.key
   resource_group_name = each.key
-  dns_prefix          = "${each.key}-aks"
-  kubernetes_version  = "1.34"
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
-  identity {
-    type = "SystemAssigned"
-  }
-
-  default_node_pool {
-    name                         = "${each.key}-aks-node-pool"
-    vm_size                      = "Standard_D2_v2"
-    node_count                   = 1
-    os_disk_size_gb              = 30
-    only_critical_addons_enabled = false
-    vnet_subnet_id               = data.azurerm_subnet.private[each.key].id
-    zones                        = ["1", "2", "3"]
-    temporary_name_for_rotation  = "${each.key}-aks-node-pool-standby"
-  }
-  linux_profile {
-    admin_username = "${each.key}-aks"
-
-    ssh_key {
-      key_data = tls_private_key.aks.public_key_openssh
-    }
-  }
-  network_profile {
-    network_plugin    = "kubenet"
-    load_balancer_sku = "standard"
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.firewall[each.key].id
+    public_ip_address_id = azurerm_public_ip.firewall[each.key].id
   }
 }
 
 ################################################################################
-# AKS - Extension
-# https://registry.terraform.io/providers/hashicorp/Azurerm/latest/docs/resources/kubernetes_cluster_extension
+# Route Table
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table
 ################################################################################
 
-resource "azurerm_kubernetes_cluster_extension" "container" {
+resource "azurerm_route_table" "firewall" {
   depends_on = [
-    azurerm_kubernetes_cluster.aks
+    azurerm_firewall.firewall
   ]
   for_each            = tomap(local.disaster_recovery)
-  name           = "${each.key}-containers-storage"
-  cluster_id     = azurerm_kubernetes_cluster.aks[each.key].id
-  extension_type = "microsoft.azurecontainerstoragev2"
+  name                = "${each.key}-firewall-route"
+  location            = each.key
+  resource_group_name = each.key
+
+  route {
+    name                   = "default-to-firewall"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[each.key].ip_configuration[0].private_ip_address
+  }
 }

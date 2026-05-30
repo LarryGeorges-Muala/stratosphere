@@ -4,9 +4,17 @@
 
 > Example of an AWS Based High Availability and Multi-Region Recovery (Pilot Light) Diagram
 
-![Diagram Main](diagram/Diagram-1.png)
+![Diagram Main](diagram/AWS-Diagram-1.png)
 
-![Diagram Recovery](diagram/Diagram-2.png)
+![Diagram Recovery](diagram/AWS-Diagram-2.png)
+
+---
+
+> Example of an AZURE Based High Availability and Multi-Region Recovery (Pilot Light) Diagram
+
+![Diagram Main](diagram/Azure-Diagram-1.png)
+
+![Diagram Recovery](diagram/Azure-Diagram-2.png)
 
 ---
 
@@ -30,19 +38,17 @@
 
 > EKS Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-aws/argo-cd/argo-cd-sample-application-spec.yaml)
 
+### AZURE
+
+> AKS Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-azure/argo-cd/argo-cd.tf)
+
+> AKS Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-azure/argo-cd/argo-cd-sample-application-spec.yaml)
 
 ### GCP
 
 > GKE Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-gcp/argo-cd/argo-cd.tf)
 
 > GKE Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-gcp/argo-cd/argo-cd-sample-application-spec.yaml)
-
-
-### AZURE
-
-> AKS Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-azure/argo-cd/argo-cd.tf)
-
-> AKS Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-azure/argo-cd/argo-cd-sample-application-spec.yaml)
 
 ---
 
@@ -76,15 +82,32 @@
 6. [API Gateway](infrastructure-aws/api-gateway/http/main.tf)
 7. [Databases](infrastructure-aws/databases/aurora/main.tf)
 8. [Cache](infrastructure-aws/databases/elasticache/main.tf)
-9. [EKS Cluster](infrastructure-aws/eks/main.tf)
-10. [EKS Cluster IAM Permissions](infrastructure-aws/eks/permissions.tf)
-11. [Kubernetes Namespaces](infrastructure-aws/workloads/devops/namespaces/main.tf)
-12. [Kubernetes Secrets](infrastructure-aws/workloads/devops/secrets/main.tf)
-13. [Helm Charts](infrastructure-aws/workloads/devops/charts/)
-14. [CI/CD - Build Agents](infrastructure-aws/workloads/devops/build-agents/main.tf)
-15. [Workload - Sample Game 2048 App](infrastructure-aws/workloads/applications/game-2048/main.tf)
-16. [Rancher Instance](infrastructure-aws/rancher/main.tf)
-17. [EKS Argo-CD](infrastructure-aws/argo-cd/argo-cd.tf)
+9. [EFS](infrastructure-aws/storage/efs/main.tf)
+10. [S3](infrastructure-aws/storage/s3/main.tf)
+11. [EKS Cluster](infrastructure-aws/eks/main.tf)
+12. [EKS Cluster IAM Permissions](infrastructure-aws/eks/permissions.tf)
+13. [Kubernetes Namespaces](infrastructure-aws/workloads/devops/namespaces/main.tf)
+14. [Kubernetes Secrets](infrastructure-aws/workloads/devops/secrets/main.tf)
+15. [Helm Charts](infrastructure-aws/workloads/devops/charts/)
+16. [CI/CD - Build Agents](infrastructure-aws/workloads/devops/build-agents/main.tf)
+17. [Workload - Sample Game 2048 App](infrastructure-aws/workloads/applications/game-2048/main.tf)
+18. [Rancher Instance](infrastructure-aws/rancher/main.tf)
+19. [EKS Argo-CD](infrastructure-aws/argo-cd/argo-cd.tf)
+
+
+## AZURE
+
+1. [VNET](infrastructure-azure/vnet/main.tf)
+2. [VNET Flow Logs](infrastructure-azure/security/vnet-flow-logs/main.tf)
+3. [Firewall](infrastructure-azure/security/firewall/main.tf)
+4. [API Management](infrastructure-azure/api-management/main.tf)
+5. [Databases](infrastructure-azure/databases/cosmos/main.tf)
+6. [Cache](infrastructure-azure/databases/cache/main.tf)
+7. [Storage Container](infrastructure-azure/storage/container/main.tf)
+8. [AKS Cluster](infrastructure-azure/aks/main.tf)
+9. [Workload - Sample Game 2048 Chart](infrastructure-azure/workloads/devops/charts/game-2048/)
+10. [Rancher Instance](infrastructure-azure/rancher/main.tf)
+11. [AKS Argo-CD](infrastructure-azure/argo-cd/argo-cd.tf)
 
 
 ## GCP
@@ -95,15 +118,6 @@
 4. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
 5. [GKE Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)
 
-
-## AZURE
-
-1. [VPC](infrastructure-azure/vpc/main.tf)
-2. [AKS Cluster](infrastructure-azure/aks/main.tf)
-3. [Workload - Sample Game 2048 Chart](infrastructure-azure/workloads/devops/charts/game-2048/)
-4. [Rancher Instance](infrastructure-azure/rancher/main.tf)
-5. [AKS Argo-CD](infrastructure-azure/argo-cd/argo-cd.tf)
-
 ---
 
 ## IaC Tooling
@@ -112,13 +126,13 @@
 
 > Packer Golden AMI: [packer/rancher-ubuntu-aws.pkr.hcl](packer/rancher-ubuntu-aws.pkr.hcl)
 
-### GCP
-
-> Packer Golden Image: [packer/rancher-ubuntu-gcp.pkr.hcl](packer/rancher-ubuntu-gcp.pkr.hcl)
-
 ### AZURE
 
 > Packer Golden VM: [packer/rancher-ubuntu-azure.pkr.hcl](packer/rancher-ubuntu-azure.pkr.hcl)
+
+### GCP
+
+> Packer Golden Image: [packer/rancher-ubuntu-gcp.pkr.hcl](packer/rancher-ubuntu-gcp.pkr.hcl)
 
 ---
 

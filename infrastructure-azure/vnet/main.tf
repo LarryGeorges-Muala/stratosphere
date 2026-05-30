@@ -58,14 +58,29 @@ resource "azurerm_resource_group" "europe" {
 }
 
 ################################################################################
+# Network Watcher
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher
+################################################################################
+
+resource "azurerm_network_watcher" "watcher" {
+  depends_on = [
+    azurerm_resource_group.asia,
+    azurerm_resource_group.europe
+  ]
+  for_each = tomap(local.disaster_recovery)
+  name                = "${each.key}-network-watcher"
+  location            = each.key
+  resource_group_name = each.key
+}
+
+################################################################################
 # VNET
 # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network
 ################################################################################
 
 resource "azurerm_virtual_network" "vnet" {
   depends_on = [
-    azurerm_resource_group.asia,
-    azurerm_resource_group.europe
+    azurerm_network_watcher.watcher
   ]
   for_each = tomap(local.disaster_recovery)
   name     = "${each.key}-vnet"
@@ -304,4 +319,37 @@ resource "azurerm_subnet_route_table_association" "public" {
   for_each       = tomap(local.disaster_recovery)
   subnet_id      = azurerm_subnet.public[each.key].id
   route_table_id = azurerm_route_table.public[each.key].id
+}
+
+################################################################################
+# VNET Peering
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering
+################################################################################
+
+resource "azurerm_virtual_network_peering" "peering_sender" {
+  depends_on = [
+    azurerm_subnet_route_table_association.public
+  ]
+  count = var.disaster_recovery_enabled ? 1 : 0
+  name                         = "${local.main_region}-peering"
+  resource_group_name          = local.main_region
+  virtual_network_name         = "${local.main_region}-vnet"
+  remote_virtual_network_id    = azurerm_virtual_network.vnet[0].id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit = false
+}
+
+resource "azurerm_virtual_network_peering" "peering_receiver" {
+  depends_on = [
+    azurerm_virtual_network_peering.peering_sender
+  ]
+  count = var.disaster_recovery_enabled ? 1 : 0
+  name                         = "${local.recovery_region}-peering"
+  resource_group_name          = local.recovery_region
+  virtual_network_name         = "${local.recovery_region}-vnet"
+  remote_virtual_network_id    = azurerm_virtual_network.vnet[1].id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit = false
 }

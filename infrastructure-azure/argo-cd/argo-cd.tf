@@ -34,6 +34,19 @@ locals {
 }
 
 ################################################################################
+# Data - Resource Group
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group
+################################################################################
+
+data "azurerm_resource_group" "asia" {
+  name     = local.main_region
+}
+
+data "azurerm_resource_group" "europe" {
+  name     = local.recovery_region
+}
+
+################################################################################
 # Data - Azure
 # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config
 ################################################################################
