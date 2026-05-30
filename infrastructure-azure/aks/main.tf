@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################
@@ -149,7 +149,7 @@ resource "azurerm_kubernetes_cluster_extension" "container" {
   depends_on = [
     azurerm_kubernetes_cluster.aks
   ]
-  for_each            = tomap(local.disaster_recovery)
+  for_each       = tomap(local.disaster_recovery)
   name           = "${each.key}-containers-storage"
   cluster_id     = azurerm_kubernetes_cluster.aks[each.key].id
   extension_type = "microsoft.azurecontainerstoragev2"

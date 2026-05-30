@@ -20,7 +20,7 @@ locals {
   }
 
   main_and_recovery_region_setup = {
-    "${local.main_region}" = []
+    "${local.main_region}"     = []
     "${local.recovery_region}" = []
   }
 
@@ -143,7 +143,7 @@ data "aws_iam_policy_document" "replication_recovery" {
 ################################################################################
 
 resource "aws_iam_role" "replication" {
-  for_each = tomap(local.disaster_recovery)
+  for_each           = tomap(local.disaster_recovery)
   name               = "${each.key}-role-replication"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
@@ -199,8 +199,8 @@ resource "aws_s3_bucket" "storage" {
   depends_on = [
     aws_iam_role_policy_attachment.replication_recovery
   ]
-  for_each = tomap(local.disaster_recovery)
-  region = each.key
+  for_each         = tomap(local.disaster_recovery)
+  region           = each.key
   bucket           = "${each.key}-s3"
   bucket_namespace = "account-regional"
 }
@@ -215,9 +215,9 @@ resource "aws_s3_bucket_acl" "storage" {
     aws_s3_bucket.storage
   ]
   for_each = tomap(local.disaster_recovery)
-  region = each.key
-  bucket = aws_s3_bucket.storage[each.key].id
-  acl    = "private"
+  region   = each.key
+  bucket   = aws_s3_bucket.storage[each.key].id
+  acl      = "private"
 }
 
 ################################################################################
@@ -230,8 +230,8 @@ resource "aws_s3_bucket_versioning" "storage" {
     aws_s3_bucket_acl.storage
   ]
   for_each = tomap(local.disaster_recovery)
-  bucket = aws_s3_bucket.storage[each.key].id
-  region = each.key
+  bucket   = aws_s3_bucket.storage[each.key].id
+  region   = each.key
   versioning_configuration {
     status = "Enabled"
   }

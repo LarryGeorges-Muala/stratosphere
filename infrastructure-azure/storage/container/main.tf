@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################
@@ -63,10 +63,10 @@ data "azurerm_virtual_network" "vnet" {
 ################################################################################
 
 resource "azurerm_storage_account" "container" {
-  for_each                 = tomap(local.disaster_recovery)
-  name                = "${each.key}-container-account"
-  resource_group_name = each.key
-  location            = each.key
+  for_each                   = tomap(local.disaster_recovery)
+  name                       = "${each.key}-container-account"
+  resource_group_name        = each.key
+  location                   = each.key
   account_tier               = "Standard"
   account_kind               = "StorageV2"
   account_replication_type   = "ZRS"
@@ -93,7 +93,7 @@ resource "azurerm_subnet" "container" {
   address_prefixes = [
     cidrsubnet(data.azurerm_virtual_network.vnet[each.key].address_space[0], 8, 0)
   ]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoints = ["Microsoft.Storage"]
 }
 
 ################################################################################
@@ -105,8 +105,8 @@ resource "azurerm_storage_account_network_rules" "container" {
   depends_on = [
     azurerm_subnet.container
   ]
-  for_each             = tomap(local.disaster_recovery)
-  storage_account_id = azurerm_storage_account.container[each.key].id
+  for_each                   = tomap(local.disaster_recovery)
+  storage_account_id         = azurerm_storage_account.container[each.key].id
   default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.container[each.key].id]
   bypass                     = ["Metrics", "Logging"]
@@ -122,8 +122,8 @@ resource "azurerm_storage_container" "container" {
   depends_on = [
     azurerm_storage_account_network_rules.container
   ]
-  for_each                 = tomap(local.disaster_recovery)
-  name                = "${each.key}-container-account"
+  for_each              = tomap(local.disaster_recovery)
+  name                  = "${each.key}-container-account"
   storage_account_id    = azurerm_storage_account.container[each.key].id
   container_access_type = "private"
 }

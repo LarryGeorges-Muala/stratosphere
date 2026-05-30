@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################

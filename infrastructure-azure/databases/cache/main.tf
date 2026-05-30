@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################
@@ -52,7 +52,7 @@ data "azurerm_resource_group" "europe" {
 ################################################################################
 
 resource "azurerm_managed_redis" "cache" {
-  for_each                 = tomap(local.disaster_recovery)
+  for_each            = tomap(local.disaster_recovery)
   name                = "${each.key}-cache"
   resource_group_name = each.key
   location            = each.key

@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################
@@ -84,7 +84,7 @@ resource "azurerm_subnet" "api" {
   default_outbound_access_enabled = true
 
   # Service endpoints help APIM seamlessly access platform infrastructure
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.Sql", "Microsoft.KeyVault"]
+  service_endpoints = ["Microsoft.Storage", "Microsoft.Sql", "Microsoft.KeyVault"]
 }
 
 ################################################################################
@@ -167,13 +167,13 @@ resource "azurerm_api_management" "api" {
   depends_on = [
     azurerm_subnet_network_security_group_association.api
   ]
-  for_each            = tomap(local.disaster_recovery)
-  name                = "${each.key}-api"
-  resource_group_name = each.key
-  location            = each.key
-  publisher_name      = "Stratosphere"
-  publisher_email     = "admin@stratoshpere.com"
-  sku_name            = "Premium_1"
+  for_each             = tomap(local.disaster_recovery)
+  name                 = "${each.key}-api"
+  resource_group_name  = each.key
+  location             = each.key
+  publisher_name       = "Stratosphere"
+  publisher_email      = "admin@stratoshpere.com"
+  sku_name             = "Premium_1"
   virtual_network_type = "Internal"
   public_ip_address_id = azurerm_public_ip.api[each.key].id
 

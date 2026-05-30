@@ -67,7 +67,7 @@ resource "azurerm_network_watcher" "watcher" {
     azurerm_resource_group.asia,
     azurerm_resource_group.europe
   ]
-  for_each = tomap(local.disaster_recovery)
+  for_each            = tomap(local.disaster_recovery)
   name                = "${each.key}-network-watcher"
   location            = each.key
   resource_group_name = each.key
@@ -330,26 +330,26 @@ resource "azurerm_virtual_network_peering" "peering_sender" {
   depends_on = [
     azurerm_subnet_route_table_association.public
   ]
-  count = var.disaster_recovery_enabled ? 1 : 0
+  count                        = var.disaster_recovery_enabled ? 1 : 0
   name                         = "${local.main_region}-peering"
   resource_group_name          = local.main_region
   virtual_network_name         = "${local.main_region}-vnet"
   remote_virtual_network_id    = azurerm_virtual_network.vnet[0].id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
-  allow_gateway_transit = false
+  allow_gateway_transit        = false
 }
 
 resource "azurerm_virtual_network_peering" "peering_receiver" {
   depends_on = [
     azurerm_virtual_network_peering.peering_sender
   ]
-  count = var.disaster_recovery_enabled ? 1 : 0
+  count                        = var.disaster_recovery_enabled ? 1 : 0
   name                         = "${local.recovery_region}-peering"
   resource_group_name          = local.recovery_region
   virtual_network_name         = "${local.recovery_region}-vnet"
   remote_virtual_network_id    = azurerm_virtual_network.vnet[1].id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
-  allow_gateway_transit = false
+  allow_gateway_transit        = false
 }

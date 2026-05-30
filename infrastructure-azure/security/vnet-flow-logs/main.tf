@@ -39,11 +39,11 @@ locals {
 ################################################################################
 
 data "azurerm_resource_group" "asia" {
-  name     = local.main_region
+  name = local.main_region
 }
 
 data "azurerm_resource_group" "europe" {
-  name     = local.recovery_region
+  name = local.recovery_region
 }
 
 ################################################################################
@@ -74,10 +74,10 @@ data "azurerm_network_watcher" "watcher" {
 ################################################################################
 
 resource "azurerm_storage_account" "vnet_flow_logs" {
-  for_each                 = tomap(local.disaster_recovery)
-  name                = "${each.key}-flow-logs"
-  resource_group_name = each.key
-  location            = each.key
+  for_each                   = tomap(local.disaster_recovery)
+  name                       = "${each.key}-flow-logs"
+  resource_group_name        = each.key
+  location                   = each.key
   account_tier               = "Standard"
   account_kind               = "StorageV2"
   account_replication_type   = "LRS"
@@ -93,7 +93,7 @@ resource "azurerm_log_analytics_workspace" "vnet_flow_logs" {
   depends_on = [
     azurerm_storage_account.vnet_flow_logs
   ]
-  for_each                 = tomap(local.disaster_recovery)
+  for_each            = tomap(local.disaster_recovery)
   name                = "${each.key}-workspace-flow-logs"
   location            = each.key
   resource_group_name = each.key
@@ -110,10 +110,10 @@ resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
   depends_on = [
     azurerm_log_analytics_workspace.vnet_flow_logs
   ]
-  for_each                 = tomap(local.disaster_recovery)
+  for_each             = tomap(local.disaster_recovery)
   network_watcher_name = data.azurerm_network_watcher.watcher[each.key].name
   resource_group_name  = each.key
-  location  = each.key
+  location             = each.key
   name                 = "${each.key}-vnet-flow-logs"
 
   target_resource_id = data.azurerm_virtual_network.vnet[each.key].id

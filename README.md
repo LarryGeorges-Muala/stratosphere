@@ -4,17 +4,17 @@
 
 > Example of an AWS Based High Availability and Multi-Region Recovery (Pilot Light) Diagram
 
-![Diagram Main](diagram/AWS-Diagram-1.png)
+![Diagram Main](diagrams/AWS-Diagram-1.png)
 
-![Diagram Recovery](diagram/AWS-Diagram-2.png)
+![Diagram Recovery](diagrams/AWS-Diagram-2.png)
 
 ---
 
 > Example of an AZURE Based High Availability and Multi-Region Recovery (Pilot Light) Diagram
 
-![Diagram Main](diagram/Azure-Diagram-1.png)
+![Diagram Main](diagrams/Azure-Diagram-1.png)
 
-![Diagram Recovery](diagram/Azure-Diagram-2.png)
+![Diagram Recovery](diagrams/Azure-Diagram-2.png)
 
 ---
 
