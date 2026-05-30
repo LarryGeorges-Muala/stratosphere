@@ -71,17 +71,21 @@ resource "helm_release" "argo_cd" {
 
   create_namespace = true
 
-  version = "3.55.4"
+  dependency_update = true
+
+  version = "9.5.17"
 
   cleanup_on_fail = true
 
   upgrade_install = true
 
+  force_update = false
+
+  recreate_pods = false
+
   atomic = true
 
   lint = false
-
-  values = [file("${path.module}/helm-values/argocd.yaml")]
 }
 
 ## ArgoCD - Recovery
@@ -101,15 +105,19 @@ resource "helm_release" "argo_cd_disaster_recovery" {
 
   create_namespace = true
 
-  version = "3.55.4"
+  dependency_update = true
+
+  version = "9.5.17"
 
   cleanup_on_fail = true
 
   upgrade_install = true
 
+  force_update = false
+
+  recreate_pods = false
+
   atomic = true
 
   lint = false
-
-  values = [file("${path.module}/helm-values/argocd.yaml")]
 }
