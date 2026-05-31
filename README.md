@@ -18,6 +18,12 @@
 
 ---
 
+> Example of an Application GitOps/SRE Setup inside of a Cluster Node (AKS/EKS/GKE) Diagram
+
+![Diagram SRE](diagrams/Node-Application-SRE-Diagram.png)
+
+---
+
 ## CI/CD
 
 > GitHub: [github-actions.yml](.github/workflows/github-actions.yml)
@@ -49,6 +55,10 @@
 > GKE Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-gcp/argo-cd/argo-cd.tf)
 
 > GKE Argo-CD Sample Application Spec: [argo-cd-sample-application-spec.yaml](infrastructure-gcp/argo-cd/argo-cd-sample-application-spec.yaml)
+
+### KIND
+
+> KIND Argo-CD Cluster Deployment: [argo-cd.tf](infrastructure-kind/cluster/argo-cd.tf)
 
 ---
 
@@ -117,6 +127,25 @@
 3. [Workload - Sample Game 2048 Chart](infrastructure-gcp/workloads/devops/charts/game-2048/)
 4. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
 5. [GKE Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)
+
+
+## KIND
+1. [Local Cluster](infrastructure-kind/cluster/main.tf)
+2. [Local Workload - Sample Game 2048](infrastructure-kind/cluster/workloads-game-2048.tf)
+3. [Local Rancher](infrastructure-kind/cluster/rancher.tf)
+4. [Local Argo-CD](infrastructure-kind/cluster/argo-cd.tf)
+
+---
+
+## IaC SRE Components
+
+1. Grafana AlertManager: [infrastructure-kind/cluster/sre-alertmanager.tf](infrastructure-kind/cluster/sre-alertmanager.tf)
+2. Grafana Alloy: [infrastructure-kind/cluster/sre-alloy.tf](infrastructure-kind/cluster/sre-alloy.tf)
+3. Grafana Dashboard: [infrastructure-kind/cluster/sre-grafana.tf](infrastructure-kind/cluster/sre-grafana.tf)
+4. Grafana Loki: [infrastructure-kind/cluster/sre-loki.tf](infrastructure-kind/cluster/sre-loki.tf)
+5. Prometheus: [infrastructure-kind/cluster/sre-prometheus.tf](infrastructure-kind/cluster/sre-prometheus.tf)
+6. Grafana Tempo: [infrastructure-kind/cluster/sre-tempo.tf](infrastructure-kind/cluster/sre-tempo.tf)
+7. Metrics Server: [infrastructure-kind/cluster/sre-metrics-server.tf](infrastructure-kind/cluster/sre-,etrics-server.tf)
 
 ---
 

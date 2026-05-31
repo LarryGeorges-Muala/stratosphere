@@ -1,0 +1,144 @@
+# Default values for cadvisor.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "cadvisor"
+
+secrets: []
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        startup:
+          enabled: false
+          command: ["/usr/bin/cadvisor"]
+          args:
+            - '-config.file=/etc/cadvisor-config/local-config.yaml'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: gcr.io/cadvisor/cadvisor
+          pullPolicy: IfNotPresent
+          tag: "latest"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 8080
+          extraPorts:
+            - name: advisor
+              enabled: true
+              port: 8095
+              targetPort: 8080
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: cadvisor.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - cadvisor.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - name: run
+            readOnly: false
+            mountPath: /var/run
+          - name: docker
+            readOnly: true
+            mountPath: /var/lib/docker
+          - name: sys
+            readOnly: true
+            mountPath: /sys
+          - name: root
+            readOnly: true
+            mountPath: /rootfs
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "cadvisor-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: run
+        hostPath:
+          path: /var/run
+          type: ''
+      - name: docker
+        hostPath:
+          path: /var/lib/docker
+          type: ''
+      - name: sys
+        hostPath:
+          path: /sys
+          type: ''
+      - name: root
+        hostPath:
+          path: /
+          type: ''
+
+    cadvisorSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

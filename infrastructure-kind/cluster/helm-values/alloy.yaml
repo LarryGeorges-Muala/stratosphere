@@ -1,0 +1,147 @@
+# Default values for alloy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "alloy"
+
+secrets:
+  - name: env-secret-alloy
+    type: env
+    variables:
+      ALLOY_OTLP_UPSTREAM: tempo-monitoring-api.staging.svc.cluster.local:4317
+      ALLOY_OTLP_LOGS_UPSTREAM: "http://loki-monitoring-api.staging.svc.cluster.local:3100/otlp"
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        envFrom:
+          - secretRef:
+              name: env-secret-alloy
+        startup:
+          enabled: true
+          command: ["/bin/alloy"]
+          args:
+            - 'run'
+            - '/etc/alloy-config/config.alloy'
+            - '--storage.path=/var/lib/alloy/data'
+            - '--server.http.listen-addr=0.0.0.0:12345'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: grafana/alloy
+          pullPolicy: IfNotPresent
+          tag: "v1.12.1@sha256:c311595156fca7b1131683d383dae1acfd29e8879d347161d2a6f714ebac0c0b"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 12345
+          extraPorts:
+            - name: one
+              enabled: true
+              port: 4319
+              targetPort: 4317
+              protocol: TCP
+            - name: two
+              enabled: true
+              port: 4320
+              protocol: TCP
+            - name: three
+              enabled: true
+              port: 4321
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: alloy.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - alloy.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /var/lib/alloy/data
+            name: data-volume
+          - name: alloy-config
+            mountPath: "/etc/alloy-config"
+            readOnly: false
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "alloy-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: alloy-config
+        secret:
+          secretName: alloy-config
+          optional: false
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

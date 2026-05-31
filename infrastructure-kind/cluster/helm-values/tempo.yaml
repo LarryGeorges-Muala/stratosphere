@@ -1,0 +1,206 @@
+# Default values for tempo.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "tempo"
+
+secrets: []
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    # initContainers:
+    #   - name: init
+    #     image: busybox:latest
+    #     command: ["sh", "-c", "chown 10001:10001 /var/tempo"]
+    #     volumeMounts:
+    #       - mountPath: /var/tempo
+    #         name: data-volume
+    #     securityContext:
+    #       runAsUser: 0
+    #       runAsGroup: 0
+    #       runAsNonRoot: false
+    containers:
+      - name: "api"
+        startup:
+          enabled: true
+          command: ["/tempo"]
+          args:
+            - '--config.file=/config/tempo.yaml'
+            - '-target=all'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: grafana/tempo
+          pullPolicy: IfNotPresent
+          tag: "2.10.5"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 3200
+          extraPorts:
+            - name: oltp
+              enabled: true
+              port: 4317
+              protocol: TCP
+            - name: delve
+              enabled: true
+              port: 2345
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: tempo.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - tempo.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /var/tempo
+            name: data-volume
+          - name: tempo-config
+            mountPath: "/config"
+            readOnly: false
+
+      - name: "vulture"
+        startup:
+          enabled: true
+          command: ["/tempo-vulture"]
+          args:
+            - '-prometheus-listen-address=:9090'
+            - '-tempo-query-url=http://tempo-monitoring-api.staging.svc.cluster.local:3200'
+            - '-tempo-push-url=http://tempo-monitoring-api.staging.svc.cluster.local:4317'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: grafana/tempo-vulture
+          pullPolicy: IfNotPresent
+          tag: "latest"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 80
+          extraPorts:
+            - name: oltp
+              enabled: false
+              port: 4317
+              protocol: TCP
+            - name: delve
+              enabled: false
+              port: 2345
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: tempo.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - tempo.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "tempo-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: tempo-config
+        secret:
+          secretName: tempo-config
+          optional: false
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

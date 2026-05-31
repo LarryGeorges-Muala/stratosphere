@@ -1,0 +1,136 @@
+# Default values for node.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "node"
+
+secrets: []
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        startup:
+          enabled: false
+          command: ["/usr/bin/node"]
+          args:
+            - '-config.file=/etc/node-config/local-config.yaml'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: prom/node-exporter
+          pullPolicy: IfNotPresent
+          tag: "latest"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 9100
+          extraPorts:
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: node.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - node.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - name: proc
+            readOnly: true
+            mountPath: /host/proc
+          - name: sys
+            readOnly: true
+            mountPath: /host/sys
+          - name: root
+            readOnly: true
+            mountPath: /host/root
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "node-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+          type: ''
+      - name: sys
+        hostPath:
+          path: /sys
+          type: ''
+      - name: root
+        hostPath:
+          path: /
+          type: ''
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

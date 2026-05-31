@@ -1,0 +1,68 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 1m Mark
+      folder: Django
+      interval: 1m
+      rules:
+        - uid: afmzzhn31erk0d
+          title: python_gc_objects_collected_total
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                editorMode: code
+                expr: rate(python_gc_objects_collected_total{instance="django-backend-api.staging.svc.cluster.local:8000",job="django"}[$__rate_interval])
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              queryType: expression
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 400
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: addhgmd
+          panelId: 3
+          noDataState: NoData
+          execErrState: Error
+          for: 1m
+          annotations:
+            __dashboardUid__: addhgmd
+            __panelId__: "3"
+            summary: Query Failed
+          labels: {}
+          isPaused: false
+          notification_settings:
+            receiver: Alert Manager

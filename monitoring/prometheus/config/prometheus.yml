@@ -1,0 +1,70 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'stratosphere-prometheus'
+
+rule_files:
+  - '/etc/prometheus-rules/prometheus.rules'
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - 'alert-monitoring-api.staging.svc.cluster.local:9093'
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['prometheus-monitoring-api.staging.svc.cluster.local:9090']
+
+  - job_name: 'django'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['django-backend-api.staging.svc.cluster.local:8000']
+        labels:
+          group: 'backend'
+
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cadvisor-monitoring-api.staging.svc.cluster.local:8090']
+        labels:
+          group: 'systems'
+
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['node-monitoring-api.staging.svc.cluster.local:9100']
+        labels:
+          group: 'systems'
+
+  - job_name: 'grafana'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['grafana-monitoring-api.staging.svc.cluster.local:3000']
+        labels:
+          group: 'systems'
+
+  - job_name: 'tempo'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['tempo-monitoring-api.staging.svc.cluster.local:3200']
+        labels:
+          group: 'systems'
+
+  - job_name: 'alloy'
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ 'alloy-monitoring-api.staging.svc.cluster.local:12345' ]
+        labels:
+          group: 'systems'

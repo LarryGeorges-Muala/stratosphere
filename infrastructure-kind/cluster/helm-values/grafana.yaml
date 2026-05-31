@@ -1,0 +1,136 @@
+# Default values for grafana.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "grafana"
+
+secrets:
+  - name: env-secret-grafana
+    type: env
+    variables:
+      GF_SECURITY_ADMIN_PASSWORD: admin # Default login: admin / admin
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        envFrom:
+          - secretRef:
+              name: env-secret-grafana
+        startup:
+          enabled: false
+          command: ["/bin/grafana"]
+          args:
+            - '--config.file=/etc/grafana-config/grafana.yml'
+            - '--storage.path=/.grafana/_data'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: grafana/grafana
+          pullPolicy: IfNotPresent
+          tag: "latest"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 3000
+          extraPorts:
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: grafana.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - grafana.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /var/lib/grafana
+            name: data-volume
+          - name: grafana-config
+            mountPath: "/etc/grafana/provisioning"
+            readOnly: false
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "grafana-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: grafana-config
+        secret:
+          secretName: grafana-config
+          optional: false
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false
