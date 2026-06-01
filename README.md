@@ -34,6 +34,8 @@
 
 > Bitbucket: [bitbucket-pipelines.yml](bitbucket-pipelines.yml)
 
+> Jenkins: [Jenkinsfile](Jenkinsfile) / [infrastructure-kind/cluster/jenkins.tf](infrastructure-kind/cluster/jenkins.tf)
+
 ---
 
 ## GitOps
@@ -123,10 +125,11 @@
 ## GCP
 
 1. [VPC](infrastructure-gcp/vpc/main.tf)
-2. [GKE Cluster](infrastructure-gcp/gke/main.tf)
-3. [Workload - Sample Game 2048 Chart](infrastructure-gcp/workloads/devops/charts/game-2048/)
-4. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
-5. [GKE Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)
+2. [Storage Filestore](infrastructure-gcp/storage/filestore/main.tf)
+3. [GKE Cluster](infrastructure-gcp/gke/main.tf)
+4. [Workload - Sample Game 2048 Chart](infrastructure-gcp/workloads/devops/charts/game-2048/)
+5. [Rancher Instance](infrastructure-gcp/rancher/main.tf)
+6. [GKE Argo-CD](infrastructure-gcp/argo-cd/argo-cd.tf)
 
 
 ## KIND

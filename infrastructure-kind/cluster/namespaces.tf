@@ -86,7 +86,7 @@ resource "kubernetes_namespace_v1" "production" {
 }
 
 ################################################################################
-# Kubernetes Namespaces - Rancher / Cert Manager
+# Kubernetes Namespaces - Argo CD
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
 ################################################################################
 
@@ -110,13 +110,37 @@ resource "kubernetes_namespace_v1" "argocd" {
 }
 
 ################################################################################
+# Kubernetes Namespaces - Jenkins CI
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
+################################################################################
+
+resource "kubernetes_namespace_v1" "jenkins" {
+  depends_on = [
+    kubernetes_namespace_v1.argocd
+  ]
+  metadata {
+    annotations = {
+      name = "jenkins"
+    }
+
+    labels = {
+      type      = "workloads"
+      category  = "system"
+      namespace = "jenkins"
+    }
+
+    name = "jenkins"
+  }
+}
+
+################################################################################
 # Kubernetes Namespaces - Rancher / Cert Manager
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1
 ################################################################################
 
 resource "kubernetes_namespace_v1" "cert_manager" {
   depends_on = [
-    kubernetes_namespace_v1.argocd
+    kubernetes_namespace_v1.jenkins
   ]
   metadata {
     annotations = {

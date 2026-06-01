@@ -68,3 +68,6 @@ __pycache__/
 # Local Vulnerabilities Report
 .vulnerabilities
 **/.vulnerabilities
+
+# Kind
+**/kube_config

@@ -32,7 +32,7 @@ locals {
 
 resource "helm_release" "cert_manager" {
   depends_on = [
-    helm_release.argo_cd
+    helm_release.jenkins
   ]
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"

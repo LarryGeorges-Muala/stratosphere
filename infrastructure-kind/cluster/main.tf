@@ -19,7 +19,7 @@
 ################################################################################
 
 locals {
-  k8s_config_path = pathexpand("~/infrastructure-kind/cluster/config/kube_config")
+  k8s_config_path = pathexpand("./config/kube_config")
 }
 
 ################################################################################
