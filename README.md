@@ -82,7 +82,7 @@
 
 - SBOM: [Syft](https://github.com/anchore/syft) / [Grype](https://github.com/anchore/grype)
 
-- SAST: [Semgrep](https://github.com/semgrep/semgrep)
+- SAST: [Semgrep](https://github.com/semgrep/semgrep) / [Snyk](https://github.com/snyk/cli)
 
 ---
 
