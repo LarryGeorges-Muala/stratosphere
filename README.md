@@ -24,6 +24,12 @@
 
 ---
 
+> CI/CD/GitOps Strategy Diagram
+
+![Diagram GitOps](diagrams/GitOps-Diagram.png)
+
+---
+
 ## CI/CD
 
 > GitHub: [github-actions.yml](.github/workflows/github-actions.yml)

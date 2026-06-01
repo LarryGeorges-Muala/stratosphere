@@ -8,7 +8,7 @@
 ### kubectl get events -n argocd
 ### kubectl create namespace argocd
 ### kubectl delete namespace argocd
-### kubectl port-forward svc/argocd-server -n argocd 8080:443
+### kubectl port-forward svc/argocd-server -n argocd 8060:443
 ### kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
 ######
 ###############################################################################
