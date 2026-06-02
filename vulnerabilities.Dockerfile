@@ -34,6 +34,12 @@ RUN semgrep-rules-manager --dir $HOME/custom-semgrep-rules download
 RUN ls $HOME/custom-semgrep-rules
 
 
+## SAST / Snyk | SETUP
+RUN curl https://static.snyk.io/cli/latest/snyk-linux -o snyk
+RUN chmod +x ./snyk
+RUN mv ./snyk /usr/local/bin/ 
+
+
 ## MANUAL SCANNING: docker exec -it vulnerabilities /bin/sh
 
 ## TRIVY
