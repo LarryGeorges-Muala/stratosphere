@@ -11,6 +11,9 @@ spec:
     repoURL: 'https://github.com/LarryGeorges-Muala/stratosphere'
     targetRevision: HEAD
     helm:
+      parameters:
+      - name: "super-chart.namespace"
+        value: "game"
       valueFiles:
       - values.yaml
   project: 'default'

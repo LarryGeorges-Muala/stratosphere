@@ -37,10 +37,10 @@ scrape_configs:
         labels:
           group: 'systems'
 
-  - job_name: 'node-exporter'
+  - job_name: 'node-monitoring-api'
     scrape_interval: 15s
     static_configs:
-      - targets: ['node-monitoring-api.staging.svc.cluster.local:9100']
+      - targets: ['node-monitoring-api.kube-system.svc.cluster.local:9100']
         labels:
           group: 'systems'
 

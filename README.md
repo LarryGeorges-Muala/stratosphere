@@ -143,6 +143,7 @@
 2. [Local Workload - Sample Game 2048](infrastructure-kind/cluster/workloads-game-2048.tf)
 3. [Local Rancher](infrastructure-kind/cluster/rancher.tf)
 4. [Local Argo-CD](infrastructure-kind/cluster/argo-cd.tf)
+5. [Local Jenkins](infrastructure-kind/cluster/jenkins.tf)
 
 ---
 
@@ -154,7 +155,8 @@
 4. Grafana Loki: [infrastructure-kind/cluster/sre-loki.tf](infrastructure-kind/cluster/sre-loki.tf)
 5. Prometheus: [infrastructure-kind/cluster/sre-prometheus.tf](infrastructure-kind/cluster/sre-prometheus.tf)
 6. Grafana Tempo: [infrastructure-kind/cluster/sre-tempo.tf](infrastructure-kind/cluster/sre-tempo.tf)
-7. Metrics Server: [infrastructure-kind/cluster/sre-metrics-server.tf](infrastructure-kind/cluster/sre-,etrics-server.tf)
+7. Metrics Server: [infrastructure-kind/cluster/sre-metrics-server.tf](infrastructure-kind/cluster/sre-metrics-server.tf)
+8. Node Exporter: [infrastructure-kind/cluster/sre-node.tf](infrastructure-kind/cluster/sre-node.tf)
 
 ---
 

@@ -45,37 +45,20 @@ resource "kind_cluster" "default" {
       }
     }
 
-    node {
-      role = "master"
-    }
+    # node {
+    #   role = "master"
+    # }
 
     node {
       role = "worker"
     }
 
-    node {
-      role = "worker"
-    }
+    # node {
+    #   role = "worker"
+    # }
 
-    node {
-      role = "worker"
-    }
+    # node {
+    #   role = "worker"
+    # }
   }
 }
-
-
-# resource "kubectl_manifest" "example_pod" {
-#   yaml_body = <<YAML
-# apiVersion: v1
-# kind: Pod
-# metadata:
-#   name: nginx-dev
-#   namespace: default
-# spec:
-#   containers:
-#   - name: nginx
-#     image: nginx:alpine
-# YAML
-
-#   depends_on = [kind_cluster.default]
-# }

@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-namespace: "staging"
+namespace: "kube-system"
 
 imagePullSecrets: []
 
@@ -16,13 +16,19 @@ deployments:
   - name: "monitoring"
     kind: DaemonSet
     replicaCount: 1
+    # hostPID: true
+    # hostNetwork: true
+    dnsPolicy: ClusterFirst
+    schedulerName: default-scheduler
     containers:
       - name: "api"
         startup:
           enabled: false
-          command: ["/usr/bin/node"]
-          args:
-            - '-config.file=/etc/node-config/local-config.yaml'
+          # command: ["/usr/bin/node"]
+          # args:
+          #   - --path.rootfs=/host/root
+          #   - --path.sysfs=/host/sys
+          #   - --path.procfs=/host/proc
         targetGroupBinding:
           enabled: false
           arn: ""
