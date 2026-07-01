@@ -65,15 +65,6 @@ data "azurerm_kubernetes_cluster" "aks" {
 }
 
 ################################################################################
-# Data - External Token
-# https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external
-################################################################################
-
-data "external" "this" {
-  program = ["bash", "-c", "az account get-access-token --resource ${var.az_resource_id} --query '{token: accessToken}' -o json"]
-}
-
-################################################################################
 # Helm Releases
 # https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release.html
 ################################################################################
