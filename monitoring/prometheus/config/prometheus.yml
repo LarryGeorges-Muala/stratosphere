@@ -1,0 +1,66 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+  external_labels:
+    cluster: 'kind'
+    monitor: 'stratosphere-prometheus'
+
+rule_files:
+  - '/etc/prometheus-rules/prometheus.rules'
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - 'alert-monitoring-api.staging.svc.cluster.local:9093'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['prometheus-monitoring-api.staging.svc.cluster.local:9090']
+
+  - job_name: 'django'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['django-backend-api.staging.svc.cluster.local:8000']
+        labels:
+          group: 'backend'
+
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cadvisor-monitoring-api.staging.svc.cluster.local:8090']
+        labels:
+          group: 'systems'
+
+  - job_name: 'node-monitoring-api'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['node-monitoring-api.kube-system.svc.cluster.local:9100']
+        labels:
+          group: 'systems'
+
+  - job_name: 'grafana'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['grafana-monitoring-api.staging.svc.cluster.local:3000']
+        labels:
+          group: 'systems'
+
+  - job_name: 'tempo'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['tempo-monitoring-api.staging.svc.cluster.local:3200']
+        labels:
+          group: 'systems'
+
+  - job_name: 'alloy'
+    scrape_interval: 15s
+    static_configs:
+      - targets: [ 'alloy-monitoring-api.staging.svc.cluster.local:12345' ]
+        labels:
+          group: 'systems'

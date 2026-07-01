@@ -1,0 +1,129 @@
+# Default values for build-agents.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+super-chart:
+
+  namespace: "devops"
+
+  imagePullSecrets: []
+
+  nameOverride: ""
+
+  fullnameOverride: "build-agent"
+
+  secrets: []
+
+  deployments:
+    - name: "linux"
+      kind: Deployment
+      replicaCount: 1
+      containers:
+        - name: "agent"
+          startup:
+            enabled: true
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                apt update;
+                apt install unzip -y;
+                apt install curl -y;
+                apt install -y less;
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip";
+                unzip awscliv2.zip;
+                ./aws/install;
+                while true; do date +'%Y-%m-%d %H:%M:%S'; sleep 10;done
+          targetGroupBinding:
+            enabled: false
+            arn: ""
+            securityGroup: ""
+          image:
+            repository: public.ecr.aws/ubuntu/ubuntu
+            pullPolicy: IfNotPresent
+            tag: "22.04_stable"
+          podAnnotations: {}
+          podLabels: {}
+          podSecurityContext: {}
+          securityContext: {}
+          service:
+            enabled: true
+            scheme: internal
+            type: ClusterIP
+            port: 80
+            extraPorts:
+              - name: https
+                enabled: false
+                port: 443
+                protocol: TCP
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: external
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+              # service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+          ingress:
+            enabled: false
+            className: ""
+            annotations: {}
+            hosts:
+              - host: build-agent.local
+                paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+            tls: []
+          httpRoute:
+            enabled: false
+            annotations: {}
+            parentRefs:
+              - name: gateway
+                sectionName: http
+            hostnames:
+              - build-agent.local
+            rules:
+              - matches:
+                - path:
+                    type: PathPrefix
+                    value: /headers
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          livenessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts: []
+
+      serviceAccount:
+        create: true
+        automount: false
+        annotations: {}
+        name: "build-agent-service-account"
+
+      autoscaling:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+
+      volumes: []
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      volumeClaimTemplates:
+        name: ""
+        storageClassName: ""
+        storage: ""
+
+      affinity:
+        enabled: true

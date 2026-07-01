@@ -1,0 +1,52 @@
+# docker compose up --build --no-deps --force-recreate --remove-orphans
+services:
+  jenkins:
+    container_name: jenkins
+    build:
+      context: .
+      dockerfile: ./jenkins.Dockerfile
+    privileged: true
+    user: root
+    networks:
+      - local_network
+    ports:
+      - "8080:8080" # Access UI at http://localhost:8080
+      - "50000:50000"
+    environment:
+      ENV: local
+      JAVA_OPTS: -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
+    volumes:
+      - .:/app
+      - /app/.jenkins-data
+      - /app/.vulnerabilities
+      - .jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/bin/docker # - $(which docker):/usr/bin/docker
+    restart: unless-stopped
+
+  # agent:
+  #   image: jenkins/ssh-agent:jdk11
+  #   container_name: jenkins-agent
+  #   privileged: true
+  #   user: root
+  #   expose:
+  #     - 22
+  #   environment:
+  #     - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBLIC_KEY}
+
+  vulnerabilities:
+    container_name: vulnerabilities
+    build:
+      context: .
+      dockerfile: ./vulnerabilities.Dockerfile
+    networks:
+      - local_network
+    volumes:
+      - .:/app
+      - /app/.jenkins-data
+      - .vulnerabilities:/.vulnerabilities
+    restart: unless-stopped
+
+networks:
+  local_network:
+    driver: bridge

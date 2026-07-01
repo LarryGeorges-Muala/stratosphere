@@ -1,0 +1,243 @@
+trigger:
+  - main
+
+variables: 
+  - name: pool-agent
+    value: ubuntu-24.04
+
+stages:
+  - stage: terraform
+    displayName: Testing Terraform
+    dependsOn: []
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+
+    jobs:
+      - job: terraform
+        displayName: Terraform Plan
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            fetchTags: 'true'
+
+          - task: Bash@3
+            displayName: Testing environment prep
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'Starting env prep for testing...'
+                sudo apt update && sudo apt install -y gnupg software-properties-common curl wget unzip
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Terraform - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+                sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                sudo apt update && sudo apt install terraform -y
+                terraform --version
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: AWS CLI - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                sudo unzip awscliv2.zip
+                sudo ./aws/install
+                aws --version
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: AWS CLI - Configuration
+            inputs:
+              targetType: 'inline'
+              script: |
+                aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile terraform
+                aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile terraform
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: VPC - TF Plan
+            inputs:
+              targetType: 'inline'
+              script: |
+                cd $(Build.SourcesDirectory)/infrastructure-aws/vpc
+                terraform init
+                terraform plan
+                aws configure set aws_access_key_id '' --profile terraform
+                aws configure set aws_secret_access_key '' --profile terraform
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+
+  - stage: helm
+    displayName: Testing Helm
+    dependsOn:
+      - terraform
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+
+    jobs:
+      - deployment: helm
+        displayName: Helm Lint
+        condition: succeeded('terraform')
+        continueOnError: 'false'
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        environment: DEVOPS # Approval Gate
+        strategy:
+          runOnce:
+            deploy:          
+              steps:
+                - checkout: self
+                  fetchTags: 'true'
+
+                - task: Bash@3
+                  displayName: Testing environment prep
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      echo 'Starting env prep for testing...'
+                      sudo apt-get install curl gpg apt-transport-https --yes
+                  condition: eq(variables['Agent.OS'], 'Linux')
+
+                - task: Bash@3
+                  displayName: Helm - Installation
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+                      echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+                      sudo apt-get update
+                      sudo apt-get install helm
+                      helm version
+                  condition: eq(variables['Agent.OS'], 'Linux')
+
+                - task: Bash@3
+                  displayName: Lint - Build Agents
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure-aws/workloads/devops/charts'
+                    script: |
+                      find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm dependency update ./build-agents;
+                      helm package ./build-agents --destination ./build-agents/charts;
+                      find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
+
+                - task: Bash@3
+                  displayName: Lint - Game 2048
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure-aws/workloads/devops/charts'
+                    script: |
+                      find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm dependency update ./game-2048;
+                      helm package ./game-2048 --destination ./game-2048/charts;
+                      find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
+
+                - task: Bash@3
+                  displayName: Lint - Nginx
+                  inputs:
+                    targetType: 'inline'
+                    workingDirectory: '$(Build.SourcesDirectory)/infrastructure-aws/workloads/devops/charts'
+                    script: |
+                      find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
+                      helm dependency update ./nginx;
+                      helm package ./nginx --destination ./nginx/charts;
+                      find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+                  condition: eq(variables['Agent.OS'], 'Linux')
+
+
+  - stage: vulnerabilities
+    displayName: Vulnerabilities
+    dependsOn: []
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+
+    jobs:
+      - job: vulnerabilities_trivy
+        displayName: Vulnerabilities Trivy
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            fetchTags: 'true'
+
+          - task: Bash@3
+            displayName: Testing environment prep
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'Starting env prep for testing...'
+                sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Trivy - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+                sudo echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                sudo apt-get update
+                sudo apt-get install trivy -y
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Trivy - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                trivy fs $(Build.SourcesDirectory) --include-dev-deps --dependency-tree
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+      - job: vulnerabilities_sbom_syft_grype
+        displayName: Vulnerabilities SBOM Syft Grype
+        pool: $(pool-agent)
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            fetchTags: 'true'
+
+          - task: Bash@3
+            displayName: Testing environment prep
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'Starting env prep for testing...'
+                sudo apt update && sudo apt install -y gnupg curl wget unzip ca-certificates
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: Syft/Grype - Installation
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo curl -sSfL https://get.anchore.io/syft | sudo sh -s -- -b /usr/local/bin
+                sudo curl -sSfL https://get.anchore.io/grype | sudo sh -s -- -b /usr/local/bin
+                rm -rf /scans || true
+                sudo mkdir /scans
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: SBOM - Syft - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo syft $(Build.SourcesDirectory) -o cyclonedx-json=/scans/sbom.json
+            condition: eq(variables['Agent.OS'], 'Linux')
+
+          - task: Bash@3
+            displayName: SBOM - Grype - Scan
+            inputs:
+              targetType: 'inline'
+              script: |
+                sudo grype sbom:/scans/sbom.json
+            condition: eq(variables['Agent.OS'], 'Linux')

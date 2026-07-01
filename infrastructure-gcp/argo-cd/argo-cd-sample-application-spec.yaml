@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 'game-2048'
+spec:
+  destination:
+    name: 'in-cluster'
+    namespace: 'game'
+  source:
+    path: 'infrastructure-gcp/workloads/devops/charts/game-2048'
+    repoURL: 'https://github.com/LarryGeorges-Muala/stratosphere'
+    targetRevision: HEAD
+    helm:
+      parameters:
+      - name: "super-chart.namespace"
+        value: "game"
+      valueFiles:
+      - values.yaml
+  project: 'default'
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

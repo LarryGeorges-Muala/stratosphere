@@ -1,0 +1,71 @@
+otelcol.receiver.otlp "otlp_receiver" {
+  grpc {
+    endpoint = "0.0.0.0:4320"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.exporter.otlp.grafanacloud.input,]
+    metrics = [otelcol.exporter.prometheus.prom_exporter.input]
+    logs    = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.exporter.otlp "grafanacloud" {
+  client {
+    endpoint = env("ALLOY_OTLP_UPSTREAM")
+    tls {
+			insecure = true
+		}
+  }
+}
+
+otelcol.exporter.prometheus "prom_exporter" {
+  forward_to = [prometheus.remote_write.prom_write.receiver]
+}
+
+prometheus.remote_write "prom_write" {
+  endpoint {
+    url = "http://prometheus-monitoring-api.staging.svc.cluster.local:9090/api/v1/write"
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    logs = [otelcol.exporter.otlphttp.default.input]
+  }
+}
+
+otelcol.exporter.otlphttp "default" {
+  client {
+    endpoint = "http://loki-monitoring-api.staging.svc.cluster.local:3100/otlp"
+    tls {
+			insecure = true
+		}
+  }
+}
+
+
+livedebugging {
+  enabled = true
+}
+
+local.file_match "local_files" {
+  path_targets = [{"__path__" = "/django/logging/*.log", "job" = "python", "hostname" = constants.hostname}]
+  sync_period  = "5s"
+}
+ 
+loki.source.file "log_scrape" {
+  targets    = local.file_match.local_files.targets
+  forward_to = [loki.write.local.receiver]
+  tail_from_end = true
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki-monitoring-api.staging.svc.cluster.local:3100/loki/api/v1/push"
+  }
+}
+

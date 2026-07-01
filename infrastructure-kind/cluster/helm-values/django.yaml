@@ -1,0 +1,269 @@
+# Default values for django.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "django"
+
+secrets:
+  - name: env-secret-django
+    type: env
+    variables:
+      ENV: local
+      SECRET_KEY: ${SECRET_KEY}
+      CRYPTOGRAPHY_KEY: ${CRYPTOGRAPHY_KEY}
+      DJANGO_LOG_LEVEL: INFO
+      DJANGO_DEBUG: True
+      REDIS_HOST: django-backend-redis.staging.svc.cluster.local
+      RABBIT_MQ_HOST: django-backend-rabbitmq.staging.svc.cluster.local
+      SENTRY_DNS_DJANGO: ${SENTRY_DNS_DJANGO}
+  - name: env-secret-rabbitmq
+    type: env
+    variables:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+deployments:
+  - name: "backend"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        envFrom:
+          - secretRef:
+              name: env-secret-django
+        startup:
+          enabled: true
+          command: ["/bin/sh"]
+          args:
+            - while true; do date +'%Y-%m-%d %H:%M:%S'; sleep 10;done
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: docker
+          pullPolicy: IfNotPresent
+          tag: "dind"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 8000
+          extraPorts:
+            - name: http
+              enabled: true
+              port: 80
+              protocol: TCP
+            - name: https
+              enabled: true
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: django.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - django.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /var/django
+            name: data-volume
+
+      - name: "redis"
+        startup:
+          enabled: true
+          command: ["/bin/sh"]
+          args:
+            - redis-server --bind 0.0.0.0 --appendonly yes
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: redis
+          pullPolicy: IfNotPresent
+          tag: "alpine"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 6379
+          extraPorts:
+            - name: http
+              enabled: false
+              port: 80
+              protocol: TCP
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: redis.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - redis.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts: []
+
+      - name: "rabbitmq"
+        envFrom:
+          - secretRef:
+              name: env-secret-rabbitmq
+        startup:
+          enabled: false
+          command: []
+          args: []
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: rabbitmq
+          pullPolicy: IfNotPresent
+          tag: "management"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 5672
+          extraPorts:
+            - name: management
+              enabled: true
+              port: 15672
+              protocol: TCP
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: rabbitmq.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - rabbitmq.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts: []
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "django-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

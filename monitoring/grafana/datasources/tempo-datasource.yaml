@@ -1,0 +1,113 @@
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: Tempo (yes streaming)
+    orgId: 1
+  - name: Tempo (no streaming)
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+- name: Tempo (yes streaming)
+  # <string, required> datasource type. Required
+  type: tempo
+  # <string, required> access mode. direct or proxy. Required
+  access: proxy
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string> url
+  url: http://tempo-monitoring-api.staging.svc.cluster.local:3200
+  # <string> database password, if used
+  password:
+  # <string> database user, if used
+  user:
+  # <string> database name, if used
+  database:
+  # <bool> enable/disable basic auth
+  basicAuth: false
+  # <string> basic auth username, if used
+  basicAuthUser:
+  # <string> basic auth password, if used
+  basicAuthPassword:
+  # <bool> enable/disable with credentials headers
+  withCredentials:
+  # <bool> mark as default datasource. Max one per org
+  isDefault: false
+  # <map> fields that will be converted to json and stored in json_data
+  jsonData:
+    httpMethod: GET
+    serviceMap:
+      datasourceUid: 'Prometheus'
+    streamingEnabled:
+      search: true
+      metrics: true
+    tracesToMetrics:
+      datasourceUid: 'Prometheus'
+      spanStartTimeShift: '-1h'
+      spanEndTimeShift: '1h'
+      tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+      queries:
+        - name: 'Sample query'
+          query: 'sum(rate(traces_spanmetrics_latency_bucket{$$__tags}[5m]))'
+  # <string> json object of data that will be encrypted.
+  secureJsonData:
+    tlsCACert: ""
+    tlsClientCert: ""
+    tlsClientKey: ""
+  version: 1
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+  uid: tempo-streaming-enabled
+
+  # <string, required> name of the datasource. Required
+- name: Tempo (no streaming)
+  # <string, required> datasource type. Required
+  type: tempo
+  # <string, required> access mode. direct or proxy. Required
+  access: proxy
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string> url
+  url: http://tempo-monitoring-api.staging.svc.cluster.local:3200
+  # <string> database password, if used
+  password:
+  # <string> database user, if used
+  user:
+  # <string> database name, if used
+  database:
+  # <bool> enable/disable basic auth
+  basicAuth: false
+  # <string> basic auth username, if used
+  basicAuthUser:
+  # <string> basic auth password, if used
+  basicAuthPassword:
+  # <bool> enable/disable with credentials headers
+  withCredentials:
+  # <bool> mark as default datasource. Max one per org
+  isDefault: false
+  # <map> fields that will be converted to json and stored in json_data
+  jsonData:
+    httpMethod: GET
+    serviceMap:
+      datasourceUid: 'Prometheus'
+    tracesToMetrics:
+      datasourceUid: 'Prometheus'
+      spanStartTimeShift: '-1h'
+      spanEndTimeShift: '1h'
+      tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+      queries:
+        - name: 'Sample query'
+          query: 'sum(rate(traces_spanmetrics_latency_bucket{$$__tags}[5m]))'
+  # <string> json object of data that will be encrypted.
+  secureJsonData:
+    tlsCACert: ""
+    tlsClientCert: ""
+    tlsClientKey: ""
+  version: 1
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+  uid: tempo-streaming-disabled

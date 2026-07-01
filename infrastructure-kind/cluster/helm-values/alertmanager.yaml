@@ -1,0 +1,136 @@
+# Default values for alertmanager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "staging"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "alertmanager"
+
+secrets:
+  - name: env-secret-alertmanager
+    type: env
+    variables:
+      ALERT_MANAGER_SLACK_API_URL: ${ALERT_MANAGER_SLACK_API_URL}
+      ALERT_MANAGER_SLACK_API_CHANNEL: ${ALERT_MANAGER_SLACK_API_CHANNEL}
+
+deployments:
+  - name: "monitoring"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        envFrom:
+          - secretRef:
+              name: env-secret-alertmanager
+        startup:
+          enabled: true
+          command: ["/bin/alertmanager"]
+          args:
+            - '--config.file=/etc/alertmanager-config/alertmanager.yml'
+            - '--storage.path=/.alertmanager/_data'
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: prom/alertmanager
+          pullPolicy: IfNotPresent
+          tag: "latest"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 9093
+          extraPorts:
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: alertmanager.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - alertmanager.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /.alertmanager/_data
+            name: data-volume
+          - name: alertmanager-config
+            mountPath: "/etc/alertmanager-config"
+            readOnly: false
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "alertmanager-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: alertmanager-config
+        secret:
+          secretName: alertmanager-config
+          optional: false
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

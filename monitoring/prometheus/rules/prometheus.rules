@@ -1,0 +1,13 @@
+groups:
+- name: unreachable
+  rules:
+
+  # Alert for any instance that is unreachable for >45 seconds.
+  - alert: service_down
+    expr: up == 0
+    for: 45s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 45 seconds."

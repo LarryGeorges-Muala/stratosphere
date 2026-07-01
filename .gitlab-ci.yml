@@ -1,0 +1,90 @@
+stages:
+  - plan
+  - lint
+  - vulnerabilities_trivy
+  - vulnerabilities_sbom_syft_grype
+
+default:
+  image: ubuntu:24.04
+
+terraform_plan:
+  stage: plan
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg software-properties-common curl wget unzip
+    - wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+    - apt update && apt install terraform -y
+    - terraform --version
+    - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip awscliv2.zip
+    - ./aws/install
+    - aws --version
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile terraform
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile terraform
+    - cd $CI_PROJECT_DIR/infrastructure-aws/vpc
+    - terraform init
+    - terraform plan
+    - aws configure set aws_access_key_id '' --profile terraform
+    - aws configure set aws_secret_access_key '' --profile terraform
+
+helm_lint:
+  stage: lint
+  needs: ["terraform_plan"]
+  when: on_success
+  environment:
+    name: DEVOPS
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: false
+  script:
+    - echo 'Starting env prep for testing...'
+    - apt-get install curl gpg apt-transport-https --yes
+    - curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    - apt-get update
+    - apt-get install helm
+    - helm version
+    - cd $CI_PROJECT_DIR/infrastructure-aws/workloads/devops/charts;
+    - find ./build-agents/charts/ -name "*.tgz" -exec rm -rf {} \;
+    - helm dependency update ./build-agents;
+    - helm package ./build-agents --destination ./build-agents/charts;
+    - find ./build-agents/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+    - find ./game-2048/charts/ -name "*.tgz" -exec rm -rf {} \;
+    - helm dependency update ./game-2048;
+    - helm package ./game-2048 --destination ./game-2048/charts;
+    - find ./game-2048/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+    - find ./nginx/charts/ -name "*.tgz" -exec rm -rf {} \;
+    - helm dependency update ./nginx;
+    - helm package ./nginx --destination ./nginx/charts;
+    - find ./nginx/charts/ -name "*.tgz" -exec helm lint --strict {} \;
+
+vulnerabilities_trivy:
+  stage: vulnerabilities_trivy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg curl wget unzip ca-certificates
+    - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | tee /usr/share/keyrings/trivy.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | tee -a /etc/apt/sources.list.d/trivy.list
+    - apt-get update
+    - apt-get install trivy -y
+    - trivy fs $CI_PROJECT_DIR --include-dev-deps --dependency-tree
+
+vulnerabilities_sbom_syft_grype:
+  stage: vulnerabilities_sbom_syft_grype
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - echo 'Starting tests...'
+    - apt update && apt install -y gnupg curl wget unzip ca-certificates
+    - curl -sSfL https://get.anchore.io/syft | sh -s -- -b /usr/local/bin
+    - curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
+    - rm -rf /scans || true
+    - mkdir /scans
+    - syft $CI_PROJECT_DIR -o cyclonedx-json=/scans/sbom.json
+    - grype sbom:/scans/sbom.json

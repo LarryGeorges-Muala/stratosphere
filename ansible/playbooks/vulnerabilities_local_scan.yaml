@@ -1,0 +1,23 @@
+- name: Vulnerabilities Play
+  hosts: containers
+  tasks:
+    - name: Ping my hosts
+      ansible.builtin.ping:
+
+    - name: "TRIVY"
+      ansible.builtin.debug:
+        msg: "Starting TRIVY scan"
+
+    - name: "Vulnerabilities scanning"
+      ansible.builtin.shell: 
+        cmd: "trivy fs /app --include-dev-deps --dependency-tree >> /.vulnerabilities/trivy.log"
+        executable: /bin/sh
+
+    - name: "SYFT / GRYPE"
+      ansible.builtin.debug:
+        msg: "Starting SYFT / GRYPE scans"
+
+    - name: "SBOM scanning"
+      ansible.builtin.shell: |
+        syft /app -o cyclonedx-json=/.vulnerabilities/sbom.json
+        grype sbom:/.vulnerabilities/sbom.json >> /.vulnerabilities/grype.log

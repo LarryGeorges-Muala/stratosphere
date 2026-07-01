@@ -1,0 +1,249 @@
+# Default values for jenkins.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: "jenkins"
+
+imagePullSecrets: []
+
+nameOverride: ""
+
+fullnameOverride: "jenkins"
+
+secrets:
+  - name: env-secret-jenkins
+    type: env
+    variables:
+      ENV: local
+      JAVA_OPTS: -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
+      DOCKER_TLS_CERTDIR: '/certs'
+      # DOCKER_TLS_CERTDIR: ''
+      DOCKER_CERT_PATH: '/certs/client'
+      DOCKER_TLS_VERIFY: "1"
+      # DOCKER_TLS_VERIFY: "0"
+      DOCKER_HOST: "tcp://localhost:2376"
+  - name: env-secret-dind
+    type: env
+    variables:
+      DOCKER_TLS_CERTDIR: '/certs'
+      # DOCKER_TLS_CERTDIR: ''
+      DOCKER_CERT_PATH: '/certs/client'
+      DOCKER_TLS_VERIFY: "1"
+      # DOCKER_TLS_VERIFY: "0"
+      # DOCKER_HOST: "tcp://localhost:2376"
+
+deployments:
+  - name: "ci"
+    kind: DaemonSet
+    replicaCount: 1
+    containers:
+      - name: "api"
+        envFrom:
+          - secretRef:
+              name: env-secret-jenkins
+        startup:
+          enabled: false
+          command: []
+          args: []
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: jenkins/jenkins
+          pullPolicy: IfNotPresent
+          tag: "lts"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext: {}
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 8080
+          extraPorts:
+            - name: jenkins
+              enabled: true
+              port: 50000
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: jenkins.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - jenkins.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - whoami
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        volumeMounts:
+          - mountPath: /var/jenkins_home
+            name: data-volume
+          - name: jenkins-config
+            mountPath: "/usr/share/jenkins/ref"
+            readOnly: false
+          - name: jenkins-docker-certs
+            mountPath: /certs/client
+          - name: dind-storage
+            mountPath: /var/lib/docker
+          - name: shared-workspace
+            mountPath: /workspace
+          # - name: docker
+          #   readOnly: true
+          #   mountPath: /usr/local/bin/docker
+          # - name: docker-socket
+          #   mountPath: /var/run/docker.sock
+
+      - name: "dind"
+        envFrom:
+          - secretRef:
+              name: env-secret-dind
+        startup:
+          enabled: false
+          command: []
+          args: []
+        targetGroupBinding:
+          enabled: false
+          arn: ""
+          securityGroup: ""
+        image:
+          repository: docker
+          pullPolicy: IfNotPresent
+          tag: "dind"
+        podAnnotations: {}
+        podLabels: {}
+        podSecurityContext: {}
+        securityContext:
+          privileged: true
+        service:
+          enabled: true
+          scheme: internal
+          type: ClusterIP
+          port: 2376
+          extraPorts:
+            - name: https
+              enabled: false
+              port: 443
+              protocol: TCP
+          annotations: {}
+        ingress:
+          enabled: false
+          className: ""
+          annotations: {}
+          hosts:
+            - host: docker.local
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls: []
+        httpRoute:
+          enabled: false
+          annotations: {}
+          parentRefs:
+            - name: gateway
+              sectionName: http
+          hostnames:
+            - docker.local
+          rules:
+            - matches:
+              - path:
+                  type: PathPrefix
+                  value: /headers
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+          - mountPath: /var/jenkins_home
+            name: data-volume
+          - name: jenkins-docker-certs
+            mountPath: /certs/client
+          - name: dind-storage
+            mountPath: /var/lib/docker
+          - name: shared-workspace
+            mountPath: /workspace
+          # - name: docker
+          #   readOnly: true
+          #   mountPath: /usr/local/bin/docker
+
+    serviceAccount:
+      create: true
+      automount: false
+      annotations: {}
+      name: "jenkins-service-account"
+
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+
+    volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: jenkins-docker-certs
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: dind-storage
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: shared-workspace
+        emptyDir:
+          sizeLimit: 1000Mi
+      - name: jenkins-config
+        secret:
+          secretName: jenkins-config
+          optional: false
+      # - name: docker
+      #   hostPath:
+      #     path: /usr/local/bin/docker
+      #     type: ''
+      # - name: docker-socket
+      #   hostPath:
+      #     path: /var/run/docker.sock
+      #     type: Socket
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    volumeClaimTemplates:
+      name: ""
+      storageClassName: ""
+      storage: ""
+
+    affinity:
+      enabled: false

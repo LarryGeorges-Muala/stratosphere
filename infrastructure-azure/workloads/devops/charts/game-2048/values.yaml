@@ -1,0 +1,116 @@
+# Default values for game-2048.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+super-chart:
+
+  namespace: "game"
+
+  imagePullSecrets: []
+
+  nameOverride: ""
+
+  fullnameOverride: "game-2048"
+
+  secrets: []
+
+  deployments:
+    - name: "backend"
+      kind: Deployment
+      replicaCount: 1
+      containers:
+        - name: "api"
+          startup:
+            enabled: false
+            command: []
+            args: []
+          targetGroupBinding:
+            enabled: false
+            arn: ""
+            securityGroup: ""
+          image:
+            repository: public.ecr.aws/l6m2t8p7/docker-2048
+            pullPolicy: IfNotPresent
+            tag: "latest"
+          podAnnotations: {}
+          podLabels: {}
+          podSecurityContext: {}
+          securityContext: {}
+          service:
+            enabled: true
+            scheme: internal
+            type: ClusterIP
+            port: 80
+            extraPorts:
+              - name: https
+                enabled: false
+                port: 443
+                protocol: TCP
+            annotations: {}
+          ingress:
+            enabled: false
+            className: ""
+            annotations: {}
+            hosts:
+              - host: game-2048.local
+                paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+            tls: []
+          httpRoute:
+            enabled: false
+            annotations: {}
+            parentRefs:
+              - name: gateway
+                sectionName: http
+            hostnames:
+              - game-2048.local
+            rules:
+              - matches:
+                - path:
+                    type: PathPrefix
+                    value: /headers
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts: []
+
+      serviceAccount:
+        create: true
+        automount: false
+        annotations: {}
+        name: ""
+
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+
+      volumes: []
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      volumeClaimTemplates:
+        name: ""
+        storageClassName: ""
+        storage: ""
+
+      affinity:
+        enabled: false

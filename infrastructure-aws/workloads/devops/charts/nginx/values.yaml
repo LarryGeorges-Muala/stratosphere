@@ -1,0 +1,142 @@
+# Default values for nginx.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+super-chart:
+
+  namespace: "staging"
+
+  imagePullSecrets: []
+
+  nameOverride: ""
+
+  fullnameOverride: "nginx"
+
+  secrets: []
+
+  deployments:
+    - name: "backend"
+      kind: Deployment
+      replicaCount: 1
+      containers:
+        - name: "api"
+          startup:
+            enabled: false
+            command: []
+            args: []
+          targetGroupBinding:
+            enabled: false
+            arn: ""
+            securityGroup: ""
+          image:
+            repository: nginx
+            pullPolicy: IfNotPresent
+            tag: "latest"
+          podAnnotations: {}
+          podLabels: {}
+          podSecurityContext: {}
+          securityContext: {}
+          service:
+            enabled: true
+            scheme: internal
+            type: ClusterIP
+            port: 80
+            extraPorts:
+              - name: https
+                enabled: false
+                port: 443
+                protocol: TCP
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: external
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+              # service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+          ingress:
+            enabled: false
+            className: "alb"
+            annotations:
+              # alb.ingress.kubernetes.io/certificate-arn: arn:...
+              # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+              # alb.ingress.kubernetes.io/ssl-redirect: "443"
+              alb.ingress.kubernetes.io/scheme: internet-facing
+              alb.ingress.kubernetes.io/target-type: ip
+              alb.ingress.kubernetes.io/healthcheck-path: /
+              # kubernetes.io/ingress.class: nginx
+              # kubernetes.io/tls-acme: "true"
+            hosts:
+              - host: nginx.local
+                paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+            tls: []
+          httpRoute:
+            enabled: false
+            annotations: {}
+            parentRefs:
+              - name: gateway
+                sectionName: http
+            hostnames:
+              - nginx.local
+            rules:
+              - matches:
+                - path:
+                    type: PathPrefix
+                    value: /headers
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              command:
+                - whoami
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: config
+              mountPath: "/etc/nginx/conf.d"
+              readOnly: false
+            - name: template
+              mountPath: "/usr/share/nginx/html"
+              readOnly: false
+
+      serviceAccount:
+        create: true
+        automount: false
+        annotations: {}
+        name: "pod-service-account"
+
+      autoscaling:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+
+      volumes:
+        - name: config
+          secret:
+            secretName: nginx-custom-config
+            optional: false
+        - name: template
+          secret:
+            secretName: nginx-custom-template
+            optional: false
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      volumeClaimTemplates:
+        name: ""
+        storageClassName: ""
+        storage: ""
+
+      affinity:
+        enabled: true
