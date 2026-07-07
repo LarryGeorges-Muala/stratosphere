@@ -27,7 +27,7 @@ jobs:
   Helm-Lint:
     runs-on: 'ubuntu-24.04'
     environment: DEVOPS # Approval Gate
-    needs: Terraform-Plan-VPC
+    needs: terraform
     steps:
       - name: Testing environment prep
         run: |
