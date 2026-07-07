@@ -10,6 +10,13 @@ terraform {
     }
   }
 
+  backend "azurerm" {
+    resource_group_name  = "southeastasia"
+    storage_account_name = "southeastasiastratos"
+    container_name       = "terraform"
+    key                  = "terraform.tfstate" # The path/name of your state file inside the container
+  }
+
   required_version = "~> 1.6"
 }
 
