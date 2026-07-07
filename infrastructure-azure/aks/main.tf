@@ -149,14 +149,14 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   default_node_pool {
-    name                         = "${each.value[1]}"
+    name                         = each.value[1]
     vm_size                      = "Standard_D2s_v3"
     node_count                   = 1
     os_disk_size_gb              = 30
     only_critical_addons_enabled = false
     # vnet_subnet_id               = azurerm_subnet.aks[each.key].id
     # zones                        = ["1", "2", "3"]
-    temporary_name_for_rotation  = "${each.value[1]}standby"
+    temporary_name_for_rotation = "${each.value[1]}standby"
   }
   linux_profile {
     admin_username = "${each.key}-aks"

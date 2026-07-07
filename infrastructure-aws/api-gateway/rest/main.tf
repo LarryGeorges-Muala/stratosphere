@@ -442,15 +442,15 @@ resource "aws_api_gateway_stage" "game_2048" {
   depends_on = [
     aws_cloudwatch_log_group.gateway_logs
   ]
-  for_each      = tomap(local.disaster_recovery)
-  region        = each.key
-  deployment_id = aws_api_gateway_deployment.game_2048[each.key].id
-  rest_api_id   = aws_api_gateway_rest_api.rest_api[each.key].id
-  stage_name    = "staging"
+  for_each             = tomap(local.disaster_recovery)
+  region               = each.key
+  deployment_id        = aws_api_gateway_deployment.game_2048[each.key].id
+  rest_api_id          = aws_api_gateway_rest_api.rest_api[each.key].id
+  stage_name           = "staging"
   xray_tracing_enabled = true
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway_logs[each.key].arn
-    format = "JSON"
+    format          = "JSON"
   }
   tags = {
     "Name"                     = "staging"
@@ -466,15 +466,15 @@ resource "aws_api_gateway_stage" "rancher" {
   depends_on = [
     aws_cloudwatch_log_group.gateway_logs
   ]
-  for_each      = tomap(local.disaster_recovery)
-  region        = each.key
-  deployment_id = aws_api_gateway_deployment.rancher[each.key].id
-  rest_api_id   = aws_api_gateway_rest_api.rest_api[each.key].id
-  stage_name    = "cluster"
+  for_each             = tomap(local.disaster_recovery)
+  region               = each.key
+  deployment_id        = aws_api_gateway_deployment.rancher[each.key].id
+  rest_api_id          = aws_api_gateway_rest_api.rest_api[each.key].id
+  stage_name           = "cluster"
   xray_tracing_enabled = true
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.gateway_logs[each.key].arn
-    format = "JSON"
+    format          = "JSON"
   }
   tags = {
     "Name"                     = "cluster"

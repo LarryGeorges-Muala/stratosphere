@@ -18,6 +18,7 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+private.tf
 
 # Terraform CLI configuration files
 .terraformrc          # CLI configuration file (e.g., credentials or personal settings)
@@ -71,3 +72,6 @@ __pycache__/
 
 # Kind
 **/kube_config
+
+# Keys
+private_key.pem

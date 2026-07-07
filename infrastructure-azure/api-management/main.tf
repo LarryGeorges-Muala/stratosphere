@@ -78,8 +78,8 @@ resource "azurerm_lb" "kubernetes_backend_lb" {
   name                = "${each.key}-kube-lb"
   location            = each.key
   resource_group_name = each.key
-  sku = "Standard"
-  sku_tier = "Regional"
+  sku                 = "Standard"
+  sku_tier            = "Regional"
 }
 
 ################################################################################
@@ -181,16 +181,16 @@ resource "azurerm_api_management" "apim" {
   depends_on = [
     azurerm_subnet_network_security_group_association.apim
   ]
-  for_each             = tomap(local.disaster_recovery)
-  name                 = "${each.key}-apim"
-  resource_group_name  = each.key
-  location             = each.key
-  publisher_name       = "Stratosphere"
-  publisher_email      = "admin@stratoshpere.com"
-  sku_name             = "Premium_1"
-  virtual_network_type = "Internal"
+  for_each                      = tomap(local.disaster_recovery)
+  name                          = "${each.key}-apim"
+  resource_group_name           = each.key
+  location                      = each.key
+  publisher_name                = "Stratosphere"
+  publisher_email               = "admin@stratoshpere.com"
+  sku_name                      = "Premium_1"
+  virtual_network_type          = "Internal"
   public_network_access_enabled = true
-  public_ip_address_id = azurerm_public_ip.apim[each.key].id
+  public_ip_address_id          = azurerm_public_ip.apim[each.key].id
 
   virtual_network_configuration {
     subnet_id = azurerm_subnet.apim[each.key].id

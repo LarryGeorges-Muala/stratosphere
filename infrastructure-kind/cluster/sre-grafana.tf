@@ -39,7 +39,7 @@ resource "kubernetes_secret" "grafana_config_dashboards" {
     "dashboards.yml"                     = "${file("${path.module}/monitoring/grafana/dashboards/dashboards.yml")}"
     "django-host-metrics-dashboard.json" = "${file("${path.module}/monitoring/grafana/dashboards/django-host-metrics-dashboard.json")}"
     "django-metrics-dashboard.json"      = "${file("${path.module}/monitoring/grafana/dashboards/django-metrics-dashboard.json")}"
-    "node-exporter-dashboard.json"      = "${file("${path.module}/monitoring/grafana/dashboards/node-exporter-dashboard.json")}"
+    "node-exporter-dashboard.json"       = "${file("${path.module}/monitoring/grafana/dashboards/node-exporter-dashboard.json")}"
   }
   type = "generic"
 }
@@ -53,9 +53,9 @@ resource "kubernetes_secret" "grafana_config_datasources" {
     namespace = "staging"
   }
   data = {
-    "loki-datasource.yaml"               = "${file("${path.module}/monitoring/grafana/datasources/loki-datasource.yaml")}"
-    "prometheus-datasource.yaml"         = "${file("${path.module}/monitoring/grafana/datasources/prometheus-datasource.yaml")}"
-    "tempo-datasource.yaml"              = "${file("${path.module}/monitoring/grafana/datasources/tempo-datasource.yaml")}"
+    "loki-datasource.yaml"       = "${file("${path.module}/monitoring/grafana/datasources/loki-datasource.yaml")}"
+    "prometheus-datasource.yaml" = "${file("${path.module}/monitoring/grafana/datasources/prometheus-datasource.yaml")}"
+    "tempo-datasource.yaml"      = "${file("${path.module}/monitoring/grafana/datasources/tempo-datasource.yaml")}"
   }
   type = "generic"
 }
@@ -69,9 +69,9 @@ resource "kubernetes_secret" "grafana_config_alerting" {
     namespace = "staging"
   }
   data = {
-    "sample-django-alert-resource.yaml"  = "${file("${path.module}/monitoring/grafana/alerting/sample-django-alert-resource.yaml")}"
-    "sample-django-alert.yaml"           = "${file("${path.module}/monitoring/grafana/alerting/sample-django-alert.yaml")}"
-    "sample-django-host-alert.yaml"      = "${file("${path.module}/monitoring/grafana/alerting/sample-django-host-alert.yaml")}"
+    "sample-django-alert-resource.yaml" = "${file("${path.module}/monitoring/grafana/alerting/sample-django-alert-resource.yaml")}"
+    "sample-django-alert.yaml"          = "${file("${path.module}/monitoring/grafana/alerting/sample-django-alert.yaml")}"
+    "sample-django-host-alert.yaml"     = "${file("${path.module}/monitoring/grafana/alerting/sample-django-host-alert.yaml")}"
   }
   type = "generic"
 }

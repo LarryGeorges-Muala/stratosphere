@@ -33,7 +33,7 @@ locals {
   }
 
   main_and_recovery_region_setup = {
-    "${local.main_region}" = []
+    "${local.main_region}"     = []
     "${local.recovery_region}" = []
   }
 
